@@ -1,38 +1,60 @@
+import { Entity } from "./constants.ts";
 import Container from "./Container.ts";
-import type {
-  ComputeValue,
-  EqualityCheckFunction,
-  SubscribeCallback,
-  Unsubscribe,
-} from "./types";
+import type { Initializer } from "./types";
 
 class AsyncStateContainer<T> extends Container<T> {
-  public get value(): T {
-    throw new Error("Method not implemented.");
+  static create<T>(initializer: Initializer<T>): AsyncStateContainer<T> {
+    return new AsyncStateContainer(initializer);
   }
 
-  public set value(newValue: T) {
-    throw new Error("Method not implemented.");
-  }
+  public async setValue(newValue: T): Promise<void> {
+    const prevValue = this._value;
 
-  public subscribe(
-    cb: SubscribeCallback<T>,
-    options?: {
-      signal?: AbortSignal;
-    },
-  ): Unsubscribe {
-    throw new Error("Method not implemented.");
-  }
+    this._value = newValue;
 
-  public computedSubscribe<P>(
-    computeValue: ComputeValue<T, P>,
-    cb: SubscribeCallback<P>,
-    options?: {
-      signal?: AbortSignal;
-      isEqual?: EqualityCheckFunction<P> | undefined;
-    },
-  ): Unsubscribe {
-    throw new Error("Method not implemented.");
+    await Promise.resolve();
+
+    const promises: Promise<boolean>[] = [];
+
+    for (const entity of this._subscribers) {
+      let promise: Promise<boolean> = Promise.resolve(false);
+
+      if (entity.type === Entity.DEFAULT) {
+        if (Object.is(prevValue, newValue)) {
+          promise = Promise.resolve(false);
+
+          continue;
+        }
+
+        entity.cb(newValue);
+        promise = Promise.resolve(true);
+      } else if (entity.type === Entity.COMPUTED) {
+        const { computeValue, cb, isEqual } = entity;
+
+        const computedValue = computeValue(newValue) as unknown;
+        const prevComputedValue = computeValue(prevValue) as unknown;
+
+        const shouldEmit = !(
+          isEqual?.(prevComputedValue, computedValue) ??
+          Object.is(computedValue, prevComputedValue)
+        );
+
+        if (!shouldEmit) {
+          promise = Promise.resolve(false);
+
+          continue;
+        }
+
+        cb(computedValue);
+        promise = Promise.resolve(true);
+      }
+
+      promises.push(promise);
+    }
+
+    await Promise.all(promises);
+
+    return Promise.resolve();
   }
 }
 
