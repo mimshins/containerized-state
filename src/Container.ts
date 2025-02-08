@@ -1,7 +1,10 @@
+import { Entity } from "./constants.ts";
 import type {
   CallableFunction,
+  ComputedEntity,
   ComputeValue,
   ContainerEntity,
+  DefaultEntity,
   EqualityCheckFunction,
   Initializer,
   SubscribeCallback,
@@ -25,14 +28,20 @@ abstract class Container<T> {
   /**
    * A snapshot of the state.
    */
-  public abstract get value(): T;
-  public abstract set value(newValue: T);
+  public getValue(): T {
+    return this._value;
+  }
+
+  /**
+   * Updates the value of the state and notifies the subscribers.
+   */
+  public abstract setValue(newValue: T): void | Promise<void>;
 
   /**
    * Subscribes to the changes of the container's state value
    * and returns the unsubscribe function.
    */
-  public abstract subscribe(
+  public subscribe(
     cb: SubscribeCallback<T>,
     options?: {
       /**
@@ -40,7 +49,27 @@ abstract class Container<T> {
        */
       signal?: AbortSignal;
     },
-  ): Unsubscribe;
+  ): Unsubscribe {
+    const { signal } = options ?? {};
+
+    const entity: DefaultEntity<T> = {
+      type: Entity.DEFAULT,
+      cb,
+    };
+
+    this._subscribers.add(entity);
+
+    const unsubscribe: Unsubscribe = () => {
+      this._subscribers.delete(entity);
+      signal?.removeEventListener("abort", unsubscribe);
+    };
+
+    signal?.addEventListener("abort", unsubscribe);
+
+    if (signal?.aborted) unsubscribe();
+
+    return unsubscribe;
+  }
 
   /**
    * Subscribes to the changes of the container's selected state values
@@ -48,7 +77,7 @@ abstract class Container<T> {
    *
    * For more control over emission changes, you may provide a custom equality function.
    */
-  public abstract computedSubscribe<P>(
+  public computedSubscribe<P>(
     computeValue: ComputeValue<T, P>,
     cb: SubscribeCallback<P>,
     options?: {
@@ -61,7 +90,29 @@ abstract class Container<T> {
        */
       isEqual?: EqualityCheckFunction<P>;
     },
-  ): Unsubscribe;
+  ): Unsubscribe {
+    const { isEqual, signal } = options ?? {};
+
+    const entity: ComputedEntity<T, P> = {
+      type: Entity.COMPUTED,
+      computeValue,
+      cb,
+      isEqual,
+    };
+
+    this._subscribers.add(entity);
+
+    const unsubscribe: Unsubscribe = () => {
+      this._subscribers.delete(entity);
+      signal?.removeEventListener("abort", unsubscribe);
+    };
+
+    signal?.addEventListener("abort", unsubscribe);
+
+    if (signal?.aborted) unsubscribe();
+
+    return unsubscribe;
+  }
 }
 
 export default Container;
