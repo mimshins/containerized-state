@@ -8,6 +8,6 @@
     "incremental": true,
     "noEmitOnError": true
   },
-  "include": ["src/index.ts"],
+  "include": ["src"],
   "exclude": ["**/*.test.ts"]
 }
