@@ -1,4 +1,4 @@
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it } from "vitest";
 
 describe("AsyncStateContainer", () => {
   it("should return true", () => {
