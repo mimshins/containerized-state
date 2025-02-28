@@ -27,7 +27,7 @@
     "lint:ts": "tsc --project tsconfig.json",
     "lint:ecma": "eslint --fix",
     "lint": "run-p lint:*",
-    "release": "pnpm publish . --tag latest --access public"
+    "release": "pnpm publish . --tag latest --access public --no-git-checks"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
