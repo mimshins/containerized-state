@@ -7,7 +7,9 @@
   "module": "./dist/esm/index.js",
   "types": "./dist/cjs/index.d.ts",
   "files": [
-    "./dist"
+    "./dist",
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
@@ -15,6 +17,20 @@
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
     }
+  },
+  "keywords": [
+    "typescript",
+    "state-management",
+    "state",
+    "framework-agnostic",
+    "observer-pattern"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mimshins/containerized-state.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mimshins/containerized-state/issues"
   },
   "scripts": {
     "clear": "shx rm -rf dist",
