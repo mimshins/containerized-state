@@ -10,7 +10,7 @@ export type CallableFunction<TArgs extends any[] = [], TReturn = void> = (
 export type SubscribeCallback<T> = (value: T) => void;
 export type Unsubscribe = () => void;
 export type ComputeValue<T, P> = (value: T) => P;
-export type EqualityCheckFunction<P> = (a: P, b: P) => boolean;
+export type EqualityCheckFunction<P> = (prev: P, next: P) => boolean;
 
 export type ComputedEntity<T, P> = {
   type: (typeof Entity)["COMPUTED"];
