@@ -5,7 +5,7 @@ Fast and minimal state container which can be used and shared across every envir
 [![license](https://img.shields.io/github/license/mimshins/containerized-state?color=010409&style=for-the-badge)](https://github.com/mimshins/containerized-state/blob/main/LICENSE)
 [![npm latest package](https://img.shields.io/npm/v/containerized-state?color=010409&style=for-the-badge)](https://www.npmjs.com/package/containerized-state)
 [![npm downloads](https://img.shields.io/npm/dt/containerized-state?color=010409&style=for-the-badge)](https://www.npmjs.com/package/containerized-state)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/containerized-state?color=010409&style=for-the-badge)](https://bundlephobia.com/package/containerized-state)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/containerized-state?style=for-the-badge&color=%23010409)](https://bundlephobia.com/package/containerized-state)
 
 
 ## Installation
