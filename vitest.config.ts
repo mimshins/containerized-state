@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { coverageConfigDefaults, defineConfig } from "vitest/config";
 
 const config = defineConfig({
   test: {
@@ -9,16 +9,10 @@ const config = defineConfig({
       reporter: ["text", "clover", "json-summary"],
       include: ["src/**"],
       exclude: [
+        ...coverageConfigDefaults.exclude,
         "src/Container.ts",
         "src/index.ts",
         "src/types.ts",
-        "coverage/**",
-        "dist/**",
-        "**\/*.d.ts",
-        "test?(s)/**",
-        "test?(-*).?(c|m)[jt]s?(x)",
-        "**\/*{.,-}{test,spec}?(-d).?(c|m)[jt]s?(x)",
-        "**\/__tests__/**",
       ],
     },
   },
