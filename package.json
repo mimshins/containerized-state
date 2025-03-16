@@ -41,7 +41,7 @@
     "prebuild": "pnpm run clear",
     "build": "run-p build:*",
     "lint:ts": "tsc --project tsconfig.json",
-    "lint:ecma": "eslint --fix",
+    "lint:ecma": "eslint --color --cache --config eslint.config.js --cache-location .eslintcache",
     "lint": "run-p lint:*",
     "release": "pnpm publish . --tag latest --access public --no-git-checks"
   },

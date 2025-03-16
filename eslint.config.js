@@ -1,18 +1,29 @@
 import jsLint from "@eslint/js";
+import vitestPlugin from "@vitest/eslint-plugin";
 import commentsPlugin from "eslint-plugin-eslint-comments";
 import importPlugin from "eslint-plugin-import";
-import jestPlugin from "eslint-plugin-jest";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import { config, configs as tsLintConfigs } from "typescript-eslint";
 
 export default config(
   jsLint.configs.recommended,
   ...tsLintConfigs.recommendedTypeChecked,
+  /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
   importPlugin.flatConfigs.recommended,
   importPlugin.flatConfigs.typescript,
+  /* eslint-enable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
   prettierRecommendedConfig,
   {
-    files: ["*.ts"],
+    ignores: ["**/dist"],
+  },
+  {
+    files: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
+    plugins: {
+      "@vitest": vitestPlugin,
+    },
+    rules: {
+      ...vitestPlugin.configs["legacy-recommended"].rules,
+    },
   },
   {
     languageOptions: {
@@ -20,17 +31,11 @@ export default config(
         tsconfigRootDir: import.meta.dirname,
         project: true,
         projectService: {
+          allowDefaultProject: ["eslint.config.js"],
           defaultProject: "./tsconfig.json",
         },
         sourceType: "module",
       },
-    },
-  },
-  {
-    files: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
-    extends: [jestPlugin.configs["flat/recommended"]],
-    rules: {
-      "jest/prefer-importing-jest-globals": "error",
     },
   },
   {
@@ -133,9 +138,5 @@ export default config(
         },
       },
     },
-  },
-  {
-    files: ["*.js", "*.mjs"],
-    ...tsLintConfigs.disableTypeChecked,
   },
 );

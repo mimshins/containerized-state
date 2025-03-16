@@ -1,5 +1,5 @@
 import { describe, expect, it, vitest } from "vitest";
-import StateContainer from "./StateContainer";
+import StateContainer from "./StateContainer.ts";
 
 describe("StateContainer", () => {
   it("should create an instance with initial value", () => {

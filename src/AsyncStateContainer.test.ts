@@ -1,8 +1,8 @@
 import { describe, expect, it, vitest } from "vitest";
-import AsyncStateContainer from "./AsyncStateContainer";
+import AsyncStateContainer from "./AsyncStateContainer.ts";
 
 describe("AsyncStateContainer", () => {
-  it("should create an instance with initial value", async () => {
+  it("should create an instance with initial value", () => {
     const container = new AsyncStateContainer(42);
 
     expect(container.getValue()).toBe(42);
