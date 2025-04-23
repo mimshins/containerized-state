@@ -27,3 +27,5 @@ export type DefaultEntity<T> = {
 export type ContainerEntity<T> = DefaultEntity<T> | ComputedEntity<T, any>;
 
 export type Initializer<T> = T | CallableFunction<[], T>;
+
+export type X = any;
