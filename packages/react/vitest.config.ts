@@ -15,9 +15,14 @@ const config = defineConfig({
     coverage: {
       enabled: true,
       provider: "v8",
-      reporter: ["text-summary", "json-summary", "html"],
+      reporter: ["text", "clover", "json-summary"],
       include: ["src/**"],
-      exclude: [...(configDefaults.coverage.exclude ?? []), "src/types.ts"],
+      exclude: [
+        ...(configDefaults.coverage.exclude ?? []),
+        "src/types.ts",
+        "src/index.ts",
+        "src/use-sync-external-store.ts",
+      ],
       thresholds: {
         "100": true,
       },

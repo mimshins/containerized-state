@@ -1,5 +1,5 @@
+import type { Container } from "containerized-state";
 import { useMemo } from "react";
-import type { Container } from "./types";
 import { useSyncExternalStore } from "./use-sync-external-store.ts";
 
 /**
@@ -9,10 +9,10 @@ import { useSyncExternalStore } from "./use-sync-external-store.ts";
  *
  * @example
  * // Example usage:
- * const container = new StateContainer(0);
+ * const container = new Container(0);
  * const currentValue = useValue(container);
  */
-const useValue = <T>(container: Container<T>): T => {
+export const useValue = <T>(container: Container<T>): T => {
   const { subscribe, getServerSnapshot, getSnapshot } = useMemo(
     () => ({
       subscribe: container.subscribe.bind(container),
@@ -30,5 +30,3 @@ const useValue = <T>(container: Container<T>): T => {
 
   return snapshot;
 };
-
-export default useValue;

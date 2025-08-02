@@ -8,6 +8,7 @@ const config = defineConfig({
       "src/**/?(*.)+(spec|test).[jt]s?(x)",
     ],
     coverage: {
+      enabled: true,
       provider: "v8",
       reporter: ["text", "clover", "json-summary"],
       include: ["src/**"],
@@ -16,6 +17,9 @@ const config = defineConfig({
         "src/index.ts",
         "src/types.ts",
       ],
+      thresholds: {
+        "100": true,
+      },
     },
   },
 });

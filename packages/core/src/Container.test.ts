@@ -209,4 +209,54 @@ describe("Container", () => {
     expect(subscriber1Done).toBe(true);
     expect(subscriber2Done).toBe(true);
   });
+
+  it("should create an instance with an initializer function", () => {
+    const container = Container.create(() => 42);
+
+    expect(container.getValue()).toBe(42);
+  });
+
+  it("should not notify computed subscribers if computed value is the same without a custom equality function", async () => {
+    const container = Container.create({ a: 1, b: "test" });
+    const subscriber = vitest.fn();
+
+    // The compute function only cares about `a`
+    container.computedSubscribe(v => v.a, subscriber);
+
+    // This change only affects `b`, so the computed value `v.a` remains the same.
+    // The default `Object.is` check should prevent the notification.
+    await container.setValue({ a: 1, b: "new-test" });
+
+    expect(subscriber).not.toHaveBeenCalled();
+  });
+
+  it("should handle `isEqual` being undefined for computed subscribers", async () => {
+    const container = Container.create({ a: 1, b: 2 });
+    const subscriber = vitest.fn();
+
+    // The compute function returns the `a` property
+    container.computedSubscribe(v => v.a, subscriber, {
+      // Intentionally provide an undefined isEqual
+      isEqual: undefined,
+    });
+
+    // Change `a` to a new value, which should trigger a notification.
+    await container.setValue({ a: 2, b: 2 });
+
+    expect(subscriber).toHaveBeenCalledWith(2);
+  });
+
+  it("should not notify default subscribers if the value is an object with the same reference", async () => {
+    const initialObject = { id: 1 };
+    const container = Container.create(initialObject);
+    const subscriber = vitest.fn();
+
+    container.subscribe(subscriber);
+
+    // Set the value to the exact same object reference
+    await container.setValue(initialObject);
+
+    // `Object.is` should prevent the notification
+    expect(subscriber).not.toHaveBeenCalled();
+  });
 });
