@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+  "changelog": [
+    "@changesets/changelog-github",
+    {
+      "repo": "mimshins/containerized-state"
+    }
+  ],
+  "commit": false,
+  "fixed": [],
+  "linked": [["containerized-state", "react-containerized-state"]],
+  "access": "public",
+  "baseBranch": "main",
+  "bumpVersionsWithWorkspaceProtocolOnly": true,
+  "prettier": false,
+  "updateInternalDependencies": "patch"
+}

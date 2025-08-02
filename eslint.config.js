@@ -1,20 +1,46 @@
 import jsLint from "@eslint/js";
 import vitestPlugin from "@vitest/eslint-plugin";
 import commentsPlugin from "eslint-plugin-eslint-comments";
-import importPlugin from "eslint-plugin-import";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
+import reactRefreshPlugin from "eslint-plugin-react-refresh";
 import { config, configs as tsLintConfigs } from "typescript-eslint";
 
 export default config(
   jsLint.configs.recommended,
-  ...tsLintConfigs.recommendedTypeChecked,
-  /* eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
-  importPlugin.flatConfigs.recommended,
-  importPlugin.flatConfigs.typescript,
-  /* eslint-enable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
+  tsLintConfigs.recommendedTypeChecked,
   prettierRecommendedConfig,
+  reactPlugin.configs.flat.recommended,
+  reactHooksPlugin.configs["recommended-latest"],
+  reactRefreshPlugin.configs.recommended,
   {
-    ignores: ["**/dist"],
+    files: ["*.ts", "*.tsx"],
+  },
+  {
+    ignores: ["**/dist/"],
+  },
+  {
+    languageOptions: {
+      parserOptions: {
+        project: true,
+        projectService: {
+          allowDefaultProject: ["eslint.config.js"],
+          defaultProject: "./tsconfig.json",
+        },
+        sourceType: "module",
+      },
+    },
+    settings: {
+      "import/resolver": {
+        typescript: {
+          project: "tsconfig.json",
+        },
+      },
+      react: {
+        version: "detect",
+      },
+    },
   },
   {
     files: ["**/__tests__/**/*.[jt]s?(x)", "**/?(*.)+(spec|test).[jt]s?(x)"],
@@ -23,19 +49,6 @@ export default config(
     },
     rules: {
       ...vitestPlugin.configs["legacy-recommended"].rules,
-    },
-  },
-  {
-    languageOptions: {
-      parserOptions: {
-        tsconfigRootDir: import.meta.dirname,
-        project: true,
-        projectService: {
-          allowDefaultProject: ["eslint.config.js"],
-          defaultProject: "./tsconfig.json",
-        },
-        sourceType: "module",
-      },
     },
   },
   {
@@ -52,9 +65,14 @@ export default config(
     },
   },
   {
+    files: ["*", "!**/scripts/**/*"],
+    rules: {
+      "no-console": "warn",
+    },
+  },
+  {
     rules: {
       "no-alert": "error",
-      "no-console": "warn",
       "prefer-const": "error",
       "default-case": "error",
       "eol-last": "error",
@@ -63,14 +81,13 @@ export default config(
       "no-unused-private-class-members": "warn",
       "no-promise-executor-return": "error",
       "no-unmodified-loop-condition": "warn",
-      "import/extensions": [
-        "error",
-        "always",
-        {
-          ignorePackages: true,
-        },
-      ],
       eqeqeq: ["error", "smart"],
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
+      "react/prop-types": "off",
+      "react/react-in-jsx-scope": "off",
       "no-duplicate-imports": [
         "error",
         {
@@ -130,13 +147,6 @@ export default config(
           next: "*",
         },
       ],
-    },
-    settings: {
-      "import/resolver": {
-        typescript: {
-          project: "tsconfig.json",
-        },
-      },
     },
   },
 );
