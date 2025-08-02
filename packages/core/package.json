@@ -1,0 +1,53 @@
+{
+  "name": "containerized-state",
+  "version": "1.0.1",
+  "description": "Fast and minimal state container which can be used and shared across React or non-React components.",
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "./dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "keywords": [
+    "typescript",
+    "state-management",
+    "state",
+    "framework-agnostic",
+    "observer-pattern"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mimshins/containerized-state.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mimshins/containerized-state/issues"
+  },
+  "author": {
+    "name": "Mostafa Shamsitabar",
+    "email": "mostafa.sh.coderino@gmail.com"
+  },
+  "license": "MIT",
+  "scripts": {
+    "clear": "shx rm -rf dist",
+    "test": "vitest run",
+    "test:dev": "vitest",
+    "prebuild": "pnpm run clear",
+    "build": "tsup",
+    "release": "pnpm publish . --tag latest --access public --no-git-checks"
+  }
+}

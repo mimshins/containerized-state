@@ -1,32 +1,41 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "target": "ES2017",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "skipLibCheck": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-
     "resolveJsonModule": true,
     "isolatedModules": true,
     "moduleDetection": "force",
-    "noEmit": true,
     "allowJs": false,
     "checkJs": false,
+    "jsx": "react-jsx",
+
+    "noEmit": true,
+    "esModuleInterop": true,
+    "declaration": true,
+    "noEmitOnError": true,
+    "incremental": true,
 
     "strict": true,
     "pretty": true,
     "noFallthroughCasesInSwitch": true,
-    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     "noUnusedLocals": true,
     "noImplicitAny": true,
     "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
-    "experimentalDecorators": true,
-    "useDefineForClassFields": false
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedSideEffectImports": true,
+
+    "paths": {
+      "containerized-state": ["./packages/core/src", "./packages/core/dist"]
+    }
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "dist"]

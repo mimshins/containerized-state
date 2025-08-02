@@ -1,13 +1,13 @@
 // eslint-disable-next-line eslint-comments/disable-enable-pair
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import type { Entity } from "./constants";
+import type { Entity } from "./constants.ts";
 
 export type CallableFunction<TArgs extends any[] = [], TReturn = void> = (
   ...args: TArgs
 ) => TReturn;
 
-export type SubscribeCallback<T> = (value: T) => void;
+export type SubscribeCallback<T> = (value: T) => Promise<void> | void;
 export type Unsubscribe = () => void;
 export type ComputeValue<T, P> = (value: T) => P;
 export type EqualityCheckFunction<P> = (prev: P, next: P) => boolean;
