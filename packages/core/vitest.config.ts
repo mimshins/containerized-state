@@ -13,7 +13,6 @@ const config = defineConfig({
       include: ["src/**"],
       exclude: [
         ...coverageConfigDefaults.exclude,
-        "src/Container.ts",
         "src/index.ts",
         "src/types.ts",
       ],

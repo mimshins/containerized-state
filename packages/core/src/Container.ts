@@ -9,11 +9,15 @@ import type {
   Initializer,
   SubscribeCallback,
   Unsubscribe,
-} from "./types";
+} from "./types.ts";
 
-abstract class Container<T> {
+export class Container<T> {
   protected _value: T;
   protected _subscribers: Set<ContainerEntity<T>>;
+
+  static create<T>(initializer: Initializer<T>): Container<T> {
+    return new Container(initializer);
+  }
 
   constructor(initializer: Initializer<T>) {
     const initialValue =
@@ -35,7 +39,49 @@ abstract class Container<T> {
   /**
    * Updates the value of the state and notifies the subscribers.
    */
-  public abstract setValue(newValue: T): void | Promise<void>;
+  public async setValue(newValue: T): Promise<void> {
+    const prevValue = this._value;
+
+    this._value = newValue;
+
+    const promises: Promise<void>[] = [];
+
+    for (const entity of this._subscribers) {
+      let promise: Promise<void> = Promise.resolve();
+
+      if (entity.type === Entity.DEFAULT) {
+        if (Object.is(prevValue, newValue)) {
+          promise = Promise.resolve();
+
+          continue;
+        }
+
+        promise = Promise.resolve(entity.cb(newValue));
+      } else if (entity.type === Entity.COMPUTED) {
+        const { computeValue, cb, isEqual } = entity;
+
+        const computedValue = computeValue(newValue) as unknown;
+        const prevComputedValue = computeValue(prevValue) as unknown;
+
+        const shouldEmit = !(
+          isEqual?.(prevComputedValue, computedValue) ??
+          Object.is(computedValue, prevComputedValue)
+        );
+
+        if (!shouldEmit) {
+          promise = Promise.resolve();
+
+          continue;
+        }
+
+        promise = Promise.resolve(cb(computedValue));
+      }
+
+      promises.push(promise);
+    }
+
+    await Promise.all(promises);
+  }
 
   /**
    * Subscribes to the changes of the container's state value
@@ -52,9 +98,13 @@ abstract class Container<T> {
   ): Unsubscribe {
     const { signal } = options ?? {};
 
+    const asyncCb = async (value: T): Promise<void> => {
+      return cb(value);
+    };
+
     const entity: DefaultEntity<T> = {
       type: Entity.DEFAULT,
-      cb,
+      cb: asyncCb,
     };
 
     this._subscribers.add(entity);
@@ -93,10 +143,14 @@ abstract class Container<T> {
   ): Unsubscribe {
     const { isEqual, signal } = options ?? {};
 
+    const asyncCb = async (value: P): Promise<void> => {
+      return cb(value);
+    };
+
     const entity: ComputedEntity<T, P> = {
       type: Entity.COMPUTED,
       computeValue,
-      cb,
+      cb: asyncCb,
       isEqual,
     };
 
@@ -114,5 +168,3 @@ abstract class Container<T> {
     return unsubscribe;
   }
 }
-
-export default Container;
