@@ -1,6 +1,6 @@
 {
   "name": "react-containerized-state",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Fast and minimal state container which can be used and shared across React or non-React components.",
   "type": "module",
   "packageManager": "pnpm@9.15.0",
@@ -44,7 +44,7 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "containerized-state": "workspace:>=1",
+    "containerized-state": "workspace:>=3.0.0",
     "react": ">=16.8",
     "react-dom": ">=16.8"
   },
