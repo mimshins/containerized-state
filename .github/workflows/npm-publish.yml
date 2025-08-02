@@ -5,58 +5,51 @@ on:
     types: [created]
 
 jobs:
-  build:
+  changesets:
+    name: 📋 Check Changesets
     runs-on: ubuntu-latest
+    # Don't run on forks. We can and should only release from the main repo.
+    if: github.repository == 'mimshins/containerized-state'
+    permissions:
+      contents: write
+      pull-requests: write
+      id-token: write
+    outputs:
+      published: ${{ steps.cs.outputs.published }}
+      pr: ${{ steps.cs.outputs.pullRequestNumber }}
     steps:
-      - uses: actions/checkout@v4
+      - name: ☁️ checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: "🔧 setup pnpm"
-        uses: pnpm/action-setup@v4
+      - name: 🔧 setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
 
-      - name: "🔧 setup node"
+      - name: 🔧 setup node
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "pnpm"
 
-      - name: "📦 install dependencies"
+      - name: 📦 install dependencies
         run: pnpm install
 
-      - name: "🧱 build package"
-        run: pnpm build
-
-      - name: "🗄️ archive package"
-        uses: actions/upload-artifact@v4
+      - name: 🔎 Create Release PR or Publish Packages
+        # The id of this step must not be "changesets", or else the step will be invisible
+        # in the list of steps from the GitHub UI when the action runs (though it will still
+        # run, and its output will appear in the raw logs). Unknown why this is the case,
+        # see https://github.com/changesets/action/issues/149 for discussion.
+        id: cs
+        uses: changesets/action@v1
         with:
-          name: dist
-          path: dist
-
-  publish-npm:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: "🔧 setup pnpm"
-        uses: pnpm/action-setup@v4
-
-      - name: "🔧 setup node"
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-          registry-url: https://registry.npmjs.org/
-
-      - name: "📦 install dependencies"
-        run: pnpm install
-
-      - name: "🚚 download package"
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist
-
-      - name: "🚀 publish package"
-        run: pnpm release
+          title: "chore: bump versions"
+          commit: "chore: bump versions"
+          publish: "pnpm release"
+          version: "pnpm changesets:apply"
+          createGithubReleases: true
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
