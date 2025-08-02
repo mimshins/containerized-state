@@ -46,7 +46,6 @@
     "clear": "shx rm -rf dist",
     "test": "vitest run",
     "test:dev": "vitest",
-    "test:coverage": "vitest run --coverage",
     "prebuild": "pnpm run clear",
     "build": "tsup",
     "release": "pnpm publish . --tag latest --access public --no-git-checks"

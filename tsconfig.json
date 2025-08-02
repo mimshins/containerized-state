@@ -34,7 +34,7 @@
     "noUncheckedSideEffectImports": true,
 
     "paths": {
-      "containerized-state": ["./packages/core/src"]
+      "containerized-state": ["./packages/core/src", "./packages/core/dist"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],
