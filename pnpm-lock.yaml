@@ -128,7 +128,7 @@ importers:
   packages/react:
     dependencies:
       containerized-state:
-        specifier: workspace:>=1
+        specifier: workspace:*
         version: link:../core
       react:
         specifier: '>=16.8'

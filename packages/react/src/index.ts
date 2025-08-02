@@ -1,3 +1,4 @@
+export * from "containerized-state";
 export type { Updater } from "./types.ts";
 export * from "./use-computed-value.ts";
 export * from "./use-update.ts";

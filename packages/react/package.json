@@ -44,11 +44,11 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "containerized-state": "workspace:>=3.0.0",
     "react": ">=16.8",
     "react-dom": ">=16.8"
   },
   "dependencies": {
+    "containerized-state": "workspace:*",
     "use-sync-external-store": "^1.5.0"
   },
   "devDependencies": {
