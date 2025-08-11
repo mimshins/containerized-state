@@ -11,7 +11,6 @@ const config = defineConfig({
       "src/**/__tests__/**/*.[jt]s?(x)",
       "src/**/?(*.)+(spec|test).[jt]s?(x)",
     ],
-    exclude: [...configDefaults.exclude, "src/**/__tests__/utils"],
     coverage: {
       enabled: true,
       provider: "v8",
