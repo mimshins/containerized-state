@@ -1,5 +1,12 @@
 # react-containerized-state
 
+## 3.1.0
+### Minor Changes
+
+
+
+- [#8](https://github.com/mimshins/containerized-state/pull/8) [`8a8ba4e`](https://github.com/mimshins/containerized-state/commit/8a8ba4e46348e92b1ca62496584a6d5ba4091e47) Thanks [@mimshins](https://github.com/mimshins)! - Add subscribe component.
+
 ## 3.0.1
 ### Patch Changes
 
