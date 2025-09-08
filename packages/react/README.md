@@ -161,6 +161,38 @@ const TodoList = () => {
 };
 ```
 
+## Subscribe
+
+A render props component that subscribes to a container and provides a computed
+value to its children. This offers a declarative, JSX-based alternative to the
+`useComputedValue` hook, which can be useful for separating concerns or creating
+reusable components.
+
+- `container`: The state container to subscribe to.
+- `compute`: A function that computes a derived value from the container's
+  state.
+- `isEqual`: An optional custom equality function to control re-renders.
+- `children`: A render function that receives the computed value as an argument.
+
+```tsx
+import { Container, Subscribe } from "react-containerized-state";
+
+// Create a container instance outside of your component
+const userContainer = new Container({
+  firstName: "Jane",
+  lastName: "Doe",
+});
+
+const UserGreeting = () => (
+  <Subscribe
+    container={userContainer}
+    compute={state => `${state.firstName} ${state.lastName}`}
+  >
+    {fullName => <h2>Hello, {fullName}!</h2>}
+  </Subscribe>
+);
+```
+
 ## Contributing
 
 Read the
