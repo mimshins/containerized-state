@@ -17,7 +17,7 @@ export type SubscribeProps<T, P> = {
   /**
    * A function that computes a derived value from the container's state.
    */
-  compute: ComputeValue<T, P>;
+  compute?: ComputeValue<T, P>;
   /**
    * An optional function to compare previous and next computed values to
    * prevent unnecessary re-renders.
@@ -48,10 +48,15 @@ export type SubscribeProps<T, P> = {
  * {(greeting) => <div>{greeting}</div>}
  * </Subscribe>
  */
-export const Subscribe = <T, P>(
+export const Subscribe = <T, P = T>(
   props: SubscribeProps<T, P>,
 ): React.JSX.Element => {
-  const { children: render, compute, container, isEqual } = props;
+  const {
+    children: render,
+    compute = (value: T) => value as unknown as P,
+    container,
+    isEqual,
+  } = props;
 
   // The component will re-render whenever the computed value changes.
   const computed = useComputedValue(container, compute, isEqual);
