@@ -1,5 +1,15 @@
 # react-containerized-state
 
+## 3.2.0
+### Patch Changes
+
+
+
+- [#10](https://github.com/mimshins/containerized-state/pull/10) [`5ed861c`](https://github.com/mimshins/containerized-state/commit/5ed861cbe5025214dc96586867a0c2ca6a561fda) Thanks [@amir78729](https://github.com/amir78729)! - Set `value => value` from `compute` default value in `Subscribe`.
+
+- Updated dependencies [[`f1ceb2d`](https://github.com/mimshins/containerized-state/commit/f1ceb2d0a01332f1d0cdf7248c0c3f97b3ea3805)]:
+  - containerized-state@3.2.0
+
 ## 3.1.0
 ### Minor Changes
 
