@@ -1,5 +1,12 @@
 # containerized-state
 
+## 3.2.0
+### Minor Changes
+
+
+
+- [#13](https://github.com/mimshins/containerized-state/pull/13) [`f1ceb2d`](https://github.com/mimshins/containerized-state/commit/f1ceb2d0a01332f1d0cdf7248c0c3f97b3ea3805) Thanks [@mimshins](https://github.com/mimshins)! - Add `reset` method.
+
 ## 3.0.1
 ### Patch Changes
 
