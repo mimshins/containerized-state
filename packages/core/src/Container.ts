@@ -15,6 +15,8 @@ export class Container<T> {
   protected _value: T;
   protected _subscribers: Set<ContainerEntity<T>>;
 
+  protected _initialValue: T;
+
   static create<T>(initializer: Initializer<T>): Container<T> {
     return new Container(initializer);
   }
@@ -24,6 +26,8 @@ export class Container<T> {
       typeof initializer === "function"
         ? (initializer as CallableFunction<[], T>)()
         : initializer;
+
+    this._initialValue = initialValue;
 
     this._value = initialValue;
     this._subscribers = new Set();
@@ -166,5 +170,9 @@ export class Container<T> {
     if (signal?.aborted) unsubscribe();
 
     return unsubscribe;
+  }
+
+  public reset(): Promise<void> {
+    return this.setValue(this._initialValue);
   }
 }

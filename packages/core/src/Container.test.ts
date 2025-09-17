@@ -259,4 +259,19 @@ describe("Container", () => {
     // `Object.is` should prevent the notification
     expect(subscriber).not.toHaveBeenCalled();
   });
+
+  it("should reset to the initial value", async () => {
+    const initialObject = { id: 1 };
+    const container = Container.create(initialObject);
+
+    await container.setValue({ id: 2 });
+
+    expect(container.getValue()).toEqual(expect.objectContaining({ id: 2 }));
+
+    await container.reset();
+
+    expect(container.getValue()).toEqual(
+      expect.objectContaining(initialObject),
+    );
+  });
 });
