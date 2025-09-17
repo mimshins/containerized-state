@@ -90,6 +90,18 @@ console.log(container.getValue()); // 10
 expect(subscriber).toHaveBeenCalledWith(10);
 ```
 
+### `container.reset()`
+
+Resets the container to its initial value. This method is asynchronous and
+returns a promise that resolves when all subscriber callbacks have completed.
+
+```ts
+const container = Container.create(0);
+
+await container.setValue(10);
+await container.reset(); // This will be 0
+```
+
 ### `container.subscribe(cb, options?)`
 
 Subscribes a callback function to be notified whenever the container's state

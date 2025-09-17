@@ -172,6 +172,10 @@ export class Container<T> {
     return unsubscribe;
   }
 
+  /**
+   * Resets the container to its initial value. This method is asynchronous an
+   * returns a promise that resolves when all subscriber callbacks have completed.
+   */
   public reset(): Promise<void> {
     return this.setValue(this._initialValue);
   }
