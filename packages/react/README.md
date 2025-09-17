@@ -169,7 +169,8 @@ value to its children. This offers a declarative, JSX-based alternative to the
 reusable components.
 
 - `container`: The state container to subscribe to.
-- `compute`: An optional function that computes a derived value from the container's state. By default, `value => value` is used.
+- `compute`: An optional function that computes a derived value from the
+  container's state. By default, `value => value` is used.
 - `isEqual`: An optional custom equality function to control re-renders.
 - `children`: A render function that receives the computed value as an argument.
 
