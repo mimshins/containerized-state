@@ -38,6 +38,32 @@ describe("Subscribe", () => {
     );
   });
 
+  it("should default to identity function when compute is not provided", async () => {
+    render(
+      <Subscribe container={userContainer}>
+        {user => (
+          <div data-testid="user">
+            {user.name}, {user.age}, {user.status}
+          </div>
+        )}
+      </Subscribe>,
+    );
+
+    // Initial render should show the full User object stringified via the render function
+    expect(screen.getByTestId("user")).toHaveTextContent("Alice, 30, active");
+
+    await act(async () => {
+      await userContainer.setValue({
+        name: "Bob",
+        age: 40,
+        status: "inactive",
+      });
+    });
+
+    // Expect the updated container state to flow through unchanged (identity compute)
+    expect(screen.getByTestId("user")).toHaveTextContent("Bob, 40, inactive");
+  });
+
   it("should re-render when the container's state changes and the computed value changes", async () => {
     render(
       <Subscribe
