@@ -124,7 +124,9 @@ const container = withPersistence(Container.create({ data: [] }), {
 
 Wraps a Container with persistence functionality.
 
-**Note**: `withPersistence` modifies the original container instance by augmenting it with persistence features. It does not create a new container instance.
+**Note**: `withPersistence` modifies the original container instance by
+augmenting it with persistence features. It does not create a new container
+instance.
 
 #### Parameters
 
