@@ -17,6 +17,7 @@ non-React components.
 
 - [containerized-state (core)](https://github.com/mimshins/containerized-state/blob/main/packages/core/README.md)
 - [react-containerized-state (react)](https://github.com/mimshins/containerized-state/blob/main/packages/react/README.md)
+- [containerized-state-plugin-persistence (persistence)](https://github.com/mimshins/containerized-state/blob/main/packages/with-persistence/README.md)
 
 ## Contributing
 
