@@ -1,5 +1,12 @@
 # react-containerized-state
 
+## 3.2.1
+### Patch Changes
+
+
+
+- [`6ecf55f`](https://github.com/mimshins/containerized-state/commit/6ecf55f845b3d03f6e8abb5ea9313e45921592c6) Thanks [@mimshins](https://github.com/mimshins)! - Bump dependency versions
+
 ## 3.2.0
 ### Patch Changes
 
