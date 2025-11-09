@@ -1,6 +1,6 @@
 {
   "name": "containerized-state-plugin-persistence",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Persistence plugin for containerized-state that adds localStorage/sessionStorage support with TTL and error handling.",
   "type": "module",
   "packageManager": "pnpm@9.15.0",
