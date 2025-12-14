@@ -6,8 +6,8 @@ on:
       - main
 
 jobs:
-  changesets:
-    name: 📋 Check Changesets
+  versioning:
+    name: "📋 Changeset Versioning"
     runs-on: ubuntu-latest
     # Don't run on forks. We can and should only release from the main repo.
     if: github.repository == 'mimshins/containerized-state'
@@ -19,26 +19,26 @@ jobs:
       published: ${{ steps.cs.outputs.published }}
       pr: ${{ steps.cs.outputs.pullRequestNumber }}
     steps:
-      - name: ☁️ checkout repository
+      - name: "☁️ Checkout repository"
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 🔧 setup pnpm
+      - name: 🔧 Setup pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 9
+          version: 10
 
-      - name: 🔧 setup node
+      - name: 🔧 Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: "pnpm"
 
-      - name: 📦 install dependencies
+      - name: 📦 Install dependencies
         run: pnpm install
 
-      - name: 🔎 Create Release PR or Publish Packages
+      - name: "🔎 Create Release PR or Publish Packages"
         # The id of this step must not be "changesets", or else the step will be invisible
         # in the list of steps from the GitHub UI when the action runs (though it will still
         # run, and its output will appear in the raw logs). Unknown why this is the case,

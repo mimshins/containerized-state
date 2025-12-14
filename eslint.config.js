@@ -1,18 +1,22 @@
+// @ts-check
+
 import jsLint from "@eslint/js";
 import vitestPlugin from "@vitest/eslint-plugin";
 import commentsPlugin from "eslint-plugin-eslint-comments";
+import importPlugin from "eslint-plugin-import";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import reactRefreshPlugin from "eslint-plugin-react-refresh";
-import { config, configs as tsLintConfigs } from "typescript-eslint";
+import { defineConfig } from "eslint/config";
+import { configs as tsLintConfigs } from "typescript-eslint";
 
-export default config(
+export default defineConfig(
   jsLint.configs.recommended,
   tsLintConfigs.recommendedTypeChecked,
   prettierRecommendedConfig,
   reactPlugin.configs.flat.recommended,
-  reactHooksPlugin.configs["recommended-latest"],
+  reactHooksPlugin.configs.flat["recommended-latest"],
   reactRefreshPlugin.configs.recommended,
   {
     files: ["*.ts", "*.tsx"],
@@ -23,7 +27,6 @@ export default config(
   {
     languageOptions: {
       parserOptions: {
-        project: true,
         projectService: {
           allowDefaultProject: ["eslint.config.js"],
           defaultProject: "./tsconfig.json",
@@ -68,6 +71,27 @@ export default config(
     files: ["*", "!**/scripts/**/*"],
     rules: {
       "no-console": "warn",
+    },
+  },
+  {
+    plugins: {
+      import: importPlugin,
+    },
+    rules: {
+      "import/extensions": [
+        "error",
+        "always",
+        {
+          ignorePackages: true,
+          checkTypeImports: true,
+        },
+      ],
+      "import/no-unresolved": [
+        "error",
+        {
+          ignore: ["^[^./]"],
+        },
+      ],
     },
   },
   {

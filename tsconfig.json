@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "skipLibCheck": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "resolveJsonModule": true,
@@ -27,7 +27,6 @@
     "noImplicitReturns": true,
     "noImplicitOverride": true,
     "noUnusedLocals": true,
-    "noImplicitAny": true,
     "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
     "noPropertyAccessFromIndexSignature": true,
