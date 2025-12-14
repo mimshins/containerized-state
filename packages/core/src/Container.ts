@@ -53,15 +53,7 @@ export class Container<T> {
     for (const entity of this._subscribers) {
       let promise: Promise<void> = Promise.resolve();
 
-      if (entity.type === Entity.DEFAULT) {
-        if (Object.is(prevValue, newValue)) {
-          promise = Promise.resolve();
-
-          continue;
-        }
-
-        promise = Promise.resolve(entity.cb(newValue));
-      } else if (entity.type === Entity.COMPUTED) {
+      if (entity.type === Entity.COMPUTED) {
         const { computeValue, cb, isEqual } = entity;
 
         const computedValue = computeValue(newValue) as unknown;
@@ -79,6 +71,15 @@ export class Container<T> {
         }
 
         promise = Promise.resolve(cb(computedValue));
+      } else {
+        // Handle Entity.DEFAULT and any other types as default behavior
+        if (Object.is(prevValue, newValue)) {
+          promise = Promise.resolve();
+
+          continue;
+        }
+
+        promise = Promise.resolve(entity.cb(newValue));
       }
 
       promises.push(promise);

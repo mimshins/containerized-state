@@ -14,7 +14,7 @@ const config = defineConfig({
     coverage: {
       enabled: true,
       provider: "v8",
-      reporter: ["text", "clover", "json-summary"],
+      reporter: ["text"],
       include: ["src/**"],
       exclude: [
         ...(configDefaults.coverage.exclude ?? []),

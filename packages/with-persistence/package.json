@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "description": "Persistence plugin for containerized-state that adds localStorage/sessionStorage support with TTL and error handling.",
   "type": "module",
-  "packageManager": "pnpm@9.15.0",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "./dist",
@@ -15,8 +13,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "default": "./dist/index.js"
     }
   },
   "keywords": [
@@ -44,14 +41,14 @@
   },
   "license": "MIT",
   "peerDependencies": {
-    "containerized-state": "^3.2.0"
+    "containerized-state": "^3"
   },
   "scripts": {
     "clear": "shx rm -rf dist",
     "test": "vitest run",
-    "test:dev": "vitest",
+    "test:watch": "vitest",
     "prebuild": "pnpm run clear",
-    "build": "tsup",
+    "build": "tsdown",
     "release": "pnpm publish . --tag latest --access public --no-git-checks"
   }
 }

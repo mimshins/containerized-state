@@ -3,20 +3,17 @@
   "version": "3.2.1",
   "description": "Fast and minimal state container which can be used and shared across React or non-React components.",
   "type": "module",
-  "packageManager": "pnpm@9.15.0",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "./dist",
-    "./README.md",
-    "./LICENSE"
+    "README.md",
+    "LICENSE"
   ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "default": "./dist/index.js"
     }
   },
   "keywords": [
@@ -57,9 +54,9 @@
   "scripts": {
     "clear": "shx rm -rf dist",
     "test": "vitest run",
-    "test:dev": "vitest",
+    "test:watch": "vitest",
     "prebuild": "pnpm run clear",
-    "build": "tsup",
+    "build": "tsdown",
     "release": "pnpm publish . --tag latest --access public --no-git-checks"
   }
 }

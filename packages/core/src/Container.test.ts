@@ -88,9 +88,16 @@ describe("Container", () => {
     await container.setValue(24);
     expect(subscriber).not.toHaveBeenCalled();
 
-    container.subscribe(subscriber, { signal: controller.signal });
+    // Test subscribing with already aborted signal
+    const alreadyAbortedController = new AbortController();
 
-    await container.setValue(24);
+    alreadyAbortedController.abort();
+
+    container.subscribe(subscriber, {
+      signal: alreadyAbortedController.signal,
+    });
+
+    await container.setValue(25);
     expect(subscriber).not.toHaveBeenCalled();
   });
 
@@ -107,11 +114,16 @@ describe("Container", () => {
     await container.setValue(43);
     expect(subscriber).not.toHaveBeenCalled();
 
+    // Test subscribing with already aborted signal
+    const alreadyAbortedController = new AbortController();
+
+    alreadyAbortedController.abort();
+
     container.computedSubscribe(v => v + 1, subscriber, {
-      signal: controller.signal,
+      signal: alreadyAbortedController.signal,
     });
 
-    await container.setValue(43);
+    await container.setValue(44);
     expect(subscriber).not.toHaveBeenCalled();
   });
 
@@ -273,5 +285,48 @@ describe("Container", () => {
     expect(container.getValue()).toEqual(
       expect.objectContaining(initialObject),
     );
+  });
+
+  it("should not notify computed subscribers when custom isEqual returns true", async () => {
+    const container = Container.create(42);
+    const subscriber = vitest.fn();
+
+    container.computedSubscribe(v => v * 2, subscriber, {
+      isEqual: () => true, // Always consider values equal
+    });
+
+    await container.setValue(43);
+    expect(subscriber).not.toHaveBeenCalled();
+  });
+
+  it("should notify computed subscribers when custom isEqual returns false", async () => {
+    const container = Container.create(42);
+    const subscriber = vitest.fn();
+
+    container.computedSubscribe(v => v, subscriber, {
+      isEqual: () => false, // Always consider values different
+    });
+
+    await container.setValue(42); // Same value but isEqual returns false
+    expect(subscriber).toHaveBeenCalledWith(42);
+  });
+
+  it("should handle computedSubscribe without options", async () => {
+    const container = Container.create(42);
+    const subscriber = vitest.fn();
+
+    // Call without options parameter
+    container.computedSubscribe(v => v * 2, subscriber);
+
+    await container.setValue(43);
+    expect(subscriber).toHaveBeenCalledWith(86);
+  });
+
+  it("should handle setValue with no subscribers", async () => {
+    const container = Container.create(42);
+
+    // No subscribers, should not throw
+    await container.setValue(43);
+    expect(container.getValue()).toBe(43);
   });
 });
