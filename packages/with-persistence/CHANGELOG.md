@@ -1,5 +1,18 @@
 # containerized-state-plugin-persistence
 
+## 1.1.0
+### Minor Changes
+
+
+
+- [`251be02`](https://github.com/mimshins/containerized-state/commit/251be02b6be7000b33e58c3d3311b9fefad09763) Thanks [@mimshins](https://github.com/mimshins)! - Refactor: update to make the packages ESM-only.
+
+
+### Patch Changes
+
+- Updated dependencies [[`251be02`](https://github.com/mimshins/containerized-state/commit/251be02b6be7000b33e58c3d3311b9fefad09763)]:
+  - containerized-state@3.3.0
+
 ## 1.0.0
 ### Major Changes
 

@@ -1,6 +1,6 @@
 {
   "name": "react-containerized-state",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "Fast and minimal state container which can be used and shared across React or non-React components.",
   "type": "module",
   "main": "./dist/index.js",
