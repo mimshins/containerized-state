@@ -1,16 +1,19 @@
 import type { Container } from "containerized-state";
-import type { PersistenceConfig, StoredData } from "./types.ts";
+import { PersistentContainer } from "./persistent-container.ts";
+import type { PersistenceConfig } from "./types.ts";
 
 /**
- * Wraps a Container with persistence functionality.
+ * Creates a PersistentContainer from an existing Container instance.
  *
- * Note: This function modifies the original container instance by augmenting it
- * with persistence features. It does not create a new container instance.
+ * Note: This function creates a new `PersistentContainer<T>` instance using the
+ * container's current value as the initial value. The returned instance extends
+ * `Container<T>` and is compatible with all hooks and utilities that accept a
+ * `Container<T>`.
  *
  * @template T The type of the container's value
- * @param container The container instance to add persistence to
+ * @param container The container instance to derive the initial value from
  * @param config Persistence configuration options
- * @returns The same container instance with persistence functionality added
+ * @returns A new PersistentContainer instance with persistence functionality
  *
  * @example
  * ```typescript
@@ -29,74 +32,6 @@ import type { PersistenceConfig, StoredData } from "./types.ts";
 export const withPersistence = <T>(
   container: Container<T>,
   config: PersistenceConfig,
-): Container<T> => {
-  const { key, storage, ttl } = config;
-
-  /**
-   * Loads persisted value from storage if available and not expired.
-   *
-   * @returns The persisted value or null if not found/expired
-   */
-  const loadPersistedValue = (): T | null => {
-    try {
-      const stored = storage.getItem(key);
-
-      if (!stored) return null;
-
-      const data = JSON.parse(stored) as StoredData<T>;
-
-      // Check if data has expired
-      if (ttl && Date.now() - data.timestamp > ttl) {
-        storage.removeItem(key);
-
-        return null;
-      }
-
-      return data.value;
-    } catch {
-      // Return null if parsing fails or storage is unavailable
-      return null;
-    }
-  };
-
-  /**
-   * Saves value to storage with current timestamp.
-   *
-   * @param value The value to persist
-   */
-  const saveValue = (value: T): void => {
-    try {
-      const data: StoredData<T> = {
-        value,
-        timestamp: Date.now(),
-      };
-
-      storage.setItem(key, JSON.stringify(data));
-    } catch {
-      // Silently fail if storage is unavailable
-    }
-  };
-
-  // Override setValue to add persistence
-  const originalSetValue = container.setValue.bind(container);
-
-  container.setValue = async (newValue: T): Promise<void> => {
-    await originalSetValue(newValue);
-
-    saveValue(newValue);
-  };
-
-  // Override reset to clear persisted data
-  const originalReset = container.reset.bind(container);
-
-  container.reset = async (): Promise<void> => {
-    await originalReset();
-
-    storage.removeItem(key);
-  };
-
-  // Initialize container with persisted value if available
-  void container.setValue(loadPersistedValue() ?? container.getValue());
-
-  return container;
+): PersistentContainer<T> => {
+  return new PersistentContainer<T>(container.getValue(), config);
 };

@@ -122,20 +122,28 @@ const container = withPersistence(Container.create({ data: [] }), {
 
 ### `withPersistence<T>(container, config)`
 
-Wraps a Container with persistence functionality.
+Creates a new `PersistentContainer<T>` with persistence functionality.
 
-**Note**: `withPersistence` modifies the original container instance by
-augmenting it with persistence features. It does not create a new container
-instance.
+**Note**: `withPersistence` creates a new `PersistentContainer<T>` instance
+using the container's current value as the initial value. The returned instance
+extends `Container<T>` and is fully compatible with all hooks and utilities
+(e.g., `useValue`, `useUpdate`) that accept a `Container<T>`.
 
 #### Parameters
 
-- `container: Container<T>` - The container instance to add persistence to
+- `container: Container<T>` - The container instance to derive the initial value
+  from
 - `config: PersistenceConfig` - Persistence configuration options
 
 #### Returns
 
-The same container instance with persistence functionality added.
+A new `PersistentContainer<T>` instance with persistence functionality.
+
+### `PersistentContainer<T>`
+
+A Container subclass with automatic persistence to a `Storage` interface.
+Extends `Container<T>` so it remains compatible everywhere a `Container<T>` is
+expected.
 
 ### `PersistenceConfig`
 
@@ -165,13 +173,15 @@ type PersistenceConfig = {
 
 ### Initialization
 
-When `withPersistence` is called, it immediately attempts to load any existing
-persisted data:
+When `withPersistence` is called, it creates a new `PersistentContainer<T>`
+instance and immediately attempts to load any existing persisted data:
 
-1. Checks if data exists in storage for the given key
-2. Validates the data format and TTL (if specified)
-3. If valid data is found, updates the container with the persisted value
-4. If no valid data is found, keeps the container's current value
+1. Creates a new `PersistentContainer<T>` with the source container's current
+   value as the initial value
+2. Checks if data exists in storage for the given key
+3. Validates the data format and TTL (if specified)
+4. If valid data is found, initializes the container with the persisted value
+5. If no valid data is found, uses the source container's current value
 
 ### Persistence
 
