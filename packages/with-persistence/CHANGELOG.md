@@ -1,5 +1,17 @@
 # containerized-state-plugin-persistence
 
+## 1.2.0
+### Minor Changes
+
+
+
+- [#22](https://github.com/mimshins/containerized-state/pull/22) [`2fc35b4`](https://github.com/mimshins/containerized-state/commit/2fc35b474c1de1e4a4f5328f20651effa18e0298) Thanks [@amir78729](https://github.com/amir78729)! - **BREAKING**: `withPersistence` now returns a new `PersistentContainer<T>` instance instead of mutating the original container.
+  
+  - Introduced `PersistentContainer<T>` class that extends `Container<T>`, providing a named type that resolves TS4094 errors in declaration emit.
+  - `withPersistence(container, config)` creates and returns a `PersistentContainer<T>` using the source container's current value as the initial value.
+  - The returned instance is fully compatible with all hooks and utilities that accept `Container<T>`.
+  - Consumers must now use the returned container rather than relying on the original container reference being modified.
+
 ## 1.1.0
 ### Minor Changes
 
