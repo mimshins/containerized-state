@@ -10,19 +10,19 @@ import type { PersistenceConfig, StoredData } from "./types.ts";
  * @template T The type of the container's value
  */
 export class PersistentContainer<T> extends Container<T> {
-  private readonly _storageKey: string;
-  private readonly _storage: Storage;
-  private readonly _ttl: number | undefined;
+  readonly #storageKey: string;
+  readonly #storage: Storage;
+  readonly #ttl: number | undefined;
 
   constructor(initializer: Initializer<T>, config: PersistenceConfig) {
     super(initializer);
 
-    this._storageKey = config.key;
-    this._storage = config.storage;
-    this._ttl = config.ttl;
+    this.#storageKey = config.key;
+    this.#storage = config.storage;
+    this.#ttl = config.ttl;
 
     // Initialize container with persisted value if available
-    const persisted = this._loadPersistedValue();
+    const persisted = this.#loadPersistedValue();
 
     if (persisted !== null) {
       this._value = persisted;
@@ -34,7 +34,7 @@ export class PersistentContainer<T> extends Container<T> {
    */
   public override async setValue(newValue: T): Promise<void> {
     await super.setValue(newValue);
-    this._saveValue(newValue);
+    this.#saveValue(newValue);
   }
 
   /**
@@ -43,23 +43,23 @@ export class PersistentContainer<T> extends Container<T> {
    */
   public override async reset(): Promise<void> {
     await super.reset();
-    this._storage.removeItem(this._storageKey);
+    this.#storage.removeItem(this.#storageKey);
   }
 
   /**
    * Loads persisted value from storage if available and not expired.
    */
-  private _loadPersistedValue(): T | null {
+  #loadPersistedValue(): T | null {
     try {
-      const stored = this._storage.getItem(this._storageKey);
+      const stored = this.#storage.getItem(this.#storageKey);
 
       if (!stored) return null;
 
       const data = JSON.parse(stored) as StoredData<T>;
 
       // Check if data has expired
-      if (this._ttl && Date.now() - data.timestamp > this._ttl) {
-        this._storage.removeItem(this._storageKey);
+      if (this.#ttl && Date.now() - data.timestamp > this.#ttl) {
+        this.#storage.removeItem(this.#storageKey);
 
         return null;
       }
@@ -74,14 +74,14 @@ export class PersistentContainer<T> extends Container<T> {
   /**
    * Saves value to storage with current timestamp.
    */
-  private _saveValue(value: T): void {
+  #saveValue(value: T): void {
     try {
       const data: StoredData<T> = {
         value,
         timestamp: Date.now(),
       };
 
-      this._storage.setItem(this._storageKey, JSON.stringify(data));
+      this.#storage.setItem(this.#storageKey, JSON.stringify(data));
     } catch {
       // Silently fail if storage is unavailable
     }

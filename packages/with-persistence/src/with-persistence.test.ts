@@ -6,32 +6,32 @@ import { withPersistence } from "./with-persistence.ts";
 
 // Mock storage implementation
 class MockStorage implements Storage {
-  private store: Record<string, string> = {};
+  #store: Record<string, string> = {};
 
   get length(): number {
-    return Object.keys(this.store).length;
+    return Object.keys(this.#store).length;
   }
 
   clear(): void {
-    this.store = {};
+    this.#store = {};
   }
 
   getItem(key: string): string | null {
-    return this.store[key] ?? null;
+    return this.#store[key] ?? null;
   }
 
   key(index: number): string | null {
-    const keys = Object.keys(this.store);
+    const keys = Object.keys(this.#store);
 
     return keys[index] ?? null;
   }
 
   removeItem(key: string): void {
-    delete this.store[key];
+    delete this.#store[key];
   }
 
   setItem(key: string, value: string): void {
-    this.store[key] = value;
+    this.#store[key] = value;
   }
 }
 
