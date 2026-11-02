@@ -61,7 +61,7 @@ describe("restoring a persisted value", () => {
     expect(open("initial", storage).getValue()).toBe("initial");
   });
 
-  it("should expire a value at once with a ttl of 0", async () => {
+  it("should expire a value at once with a ttl of 0", () => {
     const storage = memoryStorage({
       key: JSON.stringify({ value: "old", timestamp: Date.now() - 1 }),
     });
