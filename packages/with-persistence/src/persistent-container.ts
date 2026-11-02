@@ -30,11 +30,13 @@ export class PersistentContainer<T> extends Container<T> {
   }
 
   /**
-   * Updates the value of the state, notifies subscribers, and persists to storage.
+   * Persists the value to storage, then updates the state and notifies
+   * subscribers. It is saved first so that what a subscriber does cannot stop or
+   * reorder the save: one that rejects, never resolves, or finishes late.
    */
   public override async setValue(newValue: T): Promise<void> {
-    await super.setValue(newValue);
     this.#saveValue(newValue);
+    await super.setValue(newValue);
   }
 
   /**
@@ -42,8 +44,10 @@ export class PersistentContainer<T> extends Container<T> {
    * and clears persisted data from storage.
    */
   public override async reset(): Promise<void> {
-    await super.reset();
-    this.#storage.removeItem(this.#storageKey);
+    const notified = super.reset();
+
+    this.#clearValue();
+    await notified;
   }
 
   /**
@@ -68,6 +72,17 @@ export class PersistentContainer<T> extends Container<T> {
     } catch {
       // Return null if parsing fails or storage is unavailable
       return null;
+    }
+  }
+
+  /**
+   * Clears the persisted value from storage.
+   */
+  #clearValue(): void {
+    try {
+      this.#storage.removeItem(this.#storageKey);
+    } catch {
+      // Silently fail if storage is unavailable
     }
   }
 

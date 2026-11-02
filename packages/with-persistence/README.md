@@ -185,8 +185,8 @@ instance and immediately attempts to load any existing persisted data:
 
 ### Persistence
 
-- **setValue**: Automatically saves the new value to storage after updating the
-  container
+- **setValue**: Automatically saves the new value to storage before notifying
+  subscribers, so a subscriber that fails or is slow cannot stop the save
 - **reset**: Clears the persisted data from storage and resets the container to
   its initial value
 

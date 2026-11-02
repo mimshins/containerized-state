@@ -310,4 +310,120 @@ describe("withPersistence", () => {
 
     expect(newPersistentContainer.getValue()).toEqual({ theme: "dark" });
   });
+
+  describe("when a subscriber misbehaves", () => {
+    const saved = (storage: Storage, key: string): unknown => {
+      const stored = storage.getItem(key);
+
+      return stored === null
+        ? null
+        : (JSON.parse(stored) as StoredData<unknown>).value;
+    };
+
+    const open = () =>
+      new PersistentContainer<number>(0, {
+        key: "misbehaving",
+        storage: mockStorage,
+      });
+
+    it("should persist the value though a subscriber rejects", async () => {
+      const container = open();
+
+      container.subscribe(() => {
+        throw new Error("subscriber failed");
+      });
+
+      await expect(container.setValue(1)).rejects.toThrow("subscriber failed");
+
+      expect(container.getValue()).toBe(1);
+      expect(saved(mockStorage, "misbehaving")).toBe(1);
+    });
+
+    it("should persist the value while a subscriber is pending", () => {
+      const container = open();
+
+      container.subscribe(() => new Promise<void>(() => {}));
+
+      void container.setValue(1);
+
+      expect(saved(mockStorage, "misbehaving")).toBe(1);
+    });
+
+    it("should keep the newest value when an older subscriber finishes last", async () => {
+      const container = open();
+      let finishFirst = (): void => {};
+
+      container.subscribe(value =>
+        value === 1
+          ? new Promise<void>(resolve => {
+              finishFirst = resolve;
+            })
+          : undefined,
+      );
+
+      const first = container.setValue(1);
+
+      await container.setValue(2);
+      finishFirst();
+      await first;
+
+      expect(saved(mockStorage, "misbehaving")).toBe(2);
+    });
+
+    it("should clear persisted data on reset though a subscriber rejects", async () => {
+      const container = open();
+
+      await container.setValue(1);
+
+      container.subscribe(() => {
+        throw new Error("subscriber failed");
+      });
+
+      await expect(container.reset()).rejects.toThrow("subscriber failed");
+
+      expect(container.getValue()).toBe(0);
+      expect(mockStorage.getItem("misbehaving")).toBeNull();
+    });
+
+    it("should keep a value set while a reset is notifying", async () => {
+      const container = open();
+      let finishReset = (): void => {};
+
+      await container.setValue(1);
+
+      const unsubscribe = container.subscribe(
+        () =>
+          new Promise<void>(resolve => {
+            finishReset = resolve;
+          }),
+      );
+
+      const reset = container.reset();
+
+      unsubscribe();
+      await container.setValue(2);
+      finishReset();
+      await reset;
+
+      expect(saved(mockStorage, "misbehaving")).toBe(2);
+    });
+  });
+
+  it("should handle storage errors gracefully when resetting", async () => {
+    const failingStorage = new MockStorage();
+
+    vitest.spyOn(failingStorage, "removeItem").mockImplementation(() => {
+      throw new Error("Storage error");
+    });
+
+    const container = new PersistentContainer(0, {
+      key: "test",
+      storage: failingStorage,
+    });
+
+    await container.setValue(1);
+    await expect(container.reset()).resolves.toBeUndefined();
+
+    expect(container.getValue()).toBe(0);
+  });
 });
