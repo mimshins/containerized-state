@@ -82,39 +82,20 @@ const temporaryContainer = withPersistence(
 ### Custom Storage Implementation
 
 ```ts
-// Create a custom storage implementation
-class CustomStorage implements Storage {
-  private data = new Map<string, string>();
-
-  get length(): number {
-    return this.data.size;
-  }
-
-  clear(): void {
-    this.data.clear();
-  }
-
-  getItem(key: string): string | null {
-    return this.data.get(key) ?? null;
-  }
-
-  key(index: number): string | null {
-    const keys = Array.from(this.data.keys());
-    return keys[index] ?? null;
-  }
-
-  removeItem(key: string): void {
-    this.data.delete(key);
-  }
-
-  setItem(key: string, value: string): void {
-    this.data.set(key, value);
-  }
-}
+// A custom storage needs only getItem, setItem and removeItem
+const data = new Map<string, string>();
 
 const container = withPersistence(Container.create({ data: [] }), {
   key: "custom-data",
-  storage: new CustomStorage(),
+  storage: {
+    getItem: key => data.get(key) ?? null,
+    setItem: (key, value) => {
+      data.set(key, value);
+    },
+    removeItem: key => {
+      data.delete(key);
+    },
+  },
 });
 ```
 
@@ -157,9 +138,10 @@ type PersistenceConfig = {
   key: string;
 
   /**
-   * Storage interface to use (localStorage, sessionStorage, or custom).
+   * Storage to use: localStorage, sessionStorage, or anything with getItem,
+   * setItem and removeItem.
    */
-  storage: Storage;
+  storage: PersistenceStorage;
 
   /**
    * Optional time-to-live in milliseconds.

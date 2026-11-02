@@ -1,5 +1,9 @@
 import { type Initializer, Container } from "containerized-state";
-import type { PersistenceConfig, StoredData } from "./types.ts";
+import type {
+  PersistenceConfig,
+  PersistenceStorage,
+  StoredData,
+} from "./types.ts";
 
 /**
  * Whether a parsed value has the shape this package stores. Its `value` may be
@@ -21,7 +25,7 @@ const isStoredData = <T>(data: unknown): data is StoredData<T> =>
  */
 export class PersistentContainer<T> extends Container<T> {
   readonly #storageKey: string;
-  readonly #storage: Storage;
+  readonly #storage: PersistenceStorage;
   readonly #ttl: number | undefined;
 
   constructor(initializer: Initializer<T>, config: PersistenceConfig) {
