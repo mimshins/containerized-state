@@ -1,5 +1,25 @@
 # react-containerized-state
 
+## 3.3.1
+### Patch Changes
+
+
+
+- [#31](https://github.com/mimshins/containerized-state/pull/31) [`1ef3623`](https://github.com/mimshins/containerized-state/commit/1ef362321310959ce9e41cb31a617a1eae981842) Thanks [@mimshins](https://github.com/mimshins)! - Mark the packages as free of side effects, so bundlers can drop what is not
+  imported. `react-containerized-state` no longer asks for `react-dom`, which it
+  never uses, so React Native projects get no peer warning.
+
+
+- [#28](https://github.com/mimshins/containerized-state/pull/28) [`8ee56f7`](https://github.com/mimshins/containerized-state/commit/8ee56f7fa9f341ffbbfcadab580add81d04bfd6d) Thanks [@mimshins](https://github.com/mimshins)! - Import React's types by name instead of relying on the global `React` namespace,
+  so the declarations compile whichever types a project loads.
+
+
+- [#26](https://github.com/mimshins/containerized-state/pull/26) [`cd357b2`](https://github.com/mimshins/containerized-state/commit/cd357b22a0e17882087840c94b87623ed38c1aea) Thanks [@mimshins](https://github.com/mimshins)! - Import the `Container` type from `containerized-state` instead of bundling a copy
+  of it. `withPersistence(Container.create(...))` and
+  `useValue(persistentContainer)` now typecheck in an installed project.
+- Updated dependencies [[`b09c1d5`](https://github.com/mimshins/containerized-state/commit/b09c1d520292d729c21f0298eeed48efcba88bad), [`1ef3623`](https://github.com/mimshins/containerized-state/commit/1ef362321310959ce9e41cb31a617a1eae981842)]:
+  - containerized-state@3.3.1
+
 ## 3.3.0
 ### Minor Changes
 

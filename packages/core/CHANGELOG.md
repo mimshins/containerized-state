@@ -1,5 +1,21 @@
 # containerized-state
 
+## 3.3.1
+### Patch Changes
+
+
+
+- [#29](https://github.com/mimshins/containerized-state/pull/29) [`b09c1d5`](https://github.com/mimshins/containerized-state/commit/b09c1d520292d729c21f0298eeed48efcba88bad) Thanks [@mimshins](https://github.com/mimshins)! - Make notifications reliable when something changes during one. An update made by
+  a subscriber is delivered after the current one, so every subscriber sees updates
+  in order and ends on the current value. A subscriber added during a notification
+  waits for the next one. A `computeValue` or `isEqual` that throws no longer stops
+  the remaining subscribers.
+
+
+- [#31](https://github.com/mimshins/containerized-state/pull/31) [`1ef3623`](https://github.com/mimshins/containerized-state/commit/1ef362321310959ce9e41cb31a617a1eae981842) Thanks [@mimshins](https://github.com/mimshins)! - Mark the packages as free of side effects, so bundlers can drop what is not
+  imported. `react-containerized-state` no longer asks for `react-dom`, which it
+  never uses, so React Native projects get no peer warning.
+
 ## 3.3.0
 ### Minor Changes
 
