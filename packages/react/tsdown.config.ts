@@ -10,4 +10,8 @@ export default defineConfig({
   sourcemap: true,
   platform: "neutral",
   dts: true,
+  // The root tsconfig maps this package to its source, which would otherwise
+  // copy `Container` into this package's declarations. Each copy is a separate
+  // type, because of its protected members, so they could not be mixed.
+  external: ["containerized-state"],
 });
