@@ -142,9 +142,6 @@ importers:
       react:
         specifier: '>=16.8'
         version: 19.2.3
-      react-dom:
-        specifier: '>=16.8'
-        version: 19.2.3(react@19.2.3)
       use-sync-external-store:
         specifier: ^1.6.0
         version: 1.6.0(react@19.2.3)
