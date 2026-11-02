@@ -3,6 +3,7 @@ import type {
   Container,
   EqualityCheckFunction,
 } from "containerized-state";
+import type { JSX, ReactNode } from "react";
 import { useComputedValue } from "./use-computed-value.ts";
 
 export type SubscribeProps<T, P> = {
@@ -13,7 +14,7 @@ export type SubscribeProps<T, P> = {
   /**
    * A render function that receives the computed value as an argument.
    */
-  children: (renderProps: P) => React.ReactNode;
+  children: (renderProps: P) => ReactNode;
   /**
    * A function that computes a derived value from the container's state.
    */
@@ -50,7 +51,7 @@ export type SubscribeProps<T, P> = {
  */
 export const Subscribe = <T, P = T>(
   props: SubscribeProps<T, P>,
-): React.JSX.Element => {
+): JSX.Element => {
   const {
     children: render,
     compute = (value: T) => value as unknown as P,

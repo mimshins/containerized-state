@@ -1,10 +1,8 @@
 import type { Container } from "containerized-state";
-import { useCallback } from "react";
+import { type SetStateAction, useCallback } from "react";
 import type { CallableFunction } from "./types.ts";
 
-export type Updater<T> = (
-  state: React.SetStateAction<T>,
-) => void | Promise<void>;
+export type Updater<T> = (state: SetStateAction<T>) => void | Promise<void>;
 
 /**
  * Custom hook that provides an updater function to set the value of a container.
