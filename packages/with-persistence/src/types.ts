@@ -1,4 +1,13 @@
 /**
+ * The part of a `Storage` this package uses. `localStorage` and
+ * `sessionStorage` are one, and a custom storage needs only these methods.
+ */
+export type PersistenceStorage = Pick<
+  Storage,
+  "getItem" | "setItem" | "removeItem"
+>;
+
+/**
  * Configuration options for persistence functionality.
  */
 export type PersistenceConfig = {
@@ -10,7 +19,7 @@ export type PersistenceConfig = {
   /**
    * Storage interface to use.
    */
-  storage: Storage;
+  storage: PersistenceStorage;
 
   /**
    * Time-to-live in milliseconds.
