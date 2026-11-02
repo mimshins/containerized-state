@@ -17,6 +17,9 @@ export class Container<T> {
 
   protected _initialValue: T;
 
+  readonly #notifications: CallableFunction[] = [];
+  #isNotifying = false;
+
   static create<T>(initializer: Initializer<T>): Container<T> {
     return new Container(initializer);
   }
@@ -42,50 +45,72 @@ export class Container<T> {
 
   /**
    * Updates the value of the state and notifies the subscribers.
+   *
+   * Each subscriber present when a notification starts gets it, unless it
+   * unsubscribes first, and a failing one does not stop the others. An update
+   * made during a notification is delivered after it, so every subscriber sees
+   * updates in order and the last value it gets is the current one.
    */
-  public async setValue(newValue: T): Promise<void> {
+  public setValue(newValue: T): Promise<void> {
     const prevValue = this._value;
 
     this._value = newValue;
 
-    const promises: Promise<void>[] = [];
+    return new Promise((resolve, reject) => {
+      this.#notifications.push(() => {
+        const entities = [...this._subscribers];
 
-    for (const entity of this._subscribers) {
-      let promise: Promise<void> = Promise.resolve();
+        Promise.all(
+          entities.map(entity => this.#notify(entity, prevValue, newValue)),
+        ).then(() => resolve(), reject);
+      });
 
-      if (entity.type === Entity.COMPUTED) {
-        const { computeValue, cb, isEqual } = entity;
+      this.#runNotifications();
+    });
+  }
 
-        const computedValue = computeValue(newValue) as unknown;
-        const prevComputedValue = computeValue(prevValue) as unknown;
+  /**
+   * Runs the waiting notifications in order. One asked for while another runs
+   * waits for this loop instead of starting inside it.
+   */
+  #runNotifications(): void {
+    if (this.#isNotifying) return;
 
-        const shouldEmit = !(
-          isEqual?.(prevComputedValue, computedValue) ??
-          Object.is(computedValue, prevComputedValue)
-        );
+    this.#isNotifying = true;
 
-        if (!shouldEmit) {
-          promise = Promise.resolve();
+    for (const notification of this.#notifications) notification();
 
-          continue;
-        }
+    this.#notifications.length = 0;
+    this.#isNotifying = false;
+  }
 
-        promise = Promise.resolve(cb(computedValue));
-      } else {
-        // Handle Entity.DEFAULT and any other types as default behavior
-        if (Object.is(prevValue, newValue)) {
-          promise = Promise.resolve();
+  /**
+   * Notifies one subscriber of a change. It is asynchronous so that anything
+   * thrown here rejects this subscriber's promise and leaves the others alone.
+   */
+  async #notify(
+    entity: ContainerEntity<T>,
+    prevValue: T,
+    newValue: T,
+  ): Promise<void> {
+    if (!this._subscribers.has(entity)) return;
 
-          continue;
-        }
+    if (entity.type !== Entity.COMPUTED) {
+      if (!Object.is(prevValue, newValue)) await entity.cb(newValue);
 
-        promise = Promise.resolve(entity.cb(newValue));
-      }
-
-      promises.push(promise);
+      return;
     }
 
-    await Promise.all(promises);
+    const { computeValue, cb, isEqual } = entity;
+
+    const computedValue = computeValue(newValue) as unknown;
+    const prevComputedValue = computeValue(prevValue) as unknown;
+
+    const isSame =
+      isEqual?.(prevComputedValue, computedValue) ??
+      Object.is(computedValue, prevComputedValue);
+
+    if (!isSame) await cb(computedValue);
   }
 
   /**
@@ -96,7 +121,7 @@ export class Container<T> {
     cb: SubscribeCallback<T>,
     options?: {
       /**
-       * An `AbortSignal` reference to control the unsubscibe.
+       * An `AbortSignal` reference to control the unsubscribe.
        */
       signal?: AbortSignal;
     },
@@ -137,7 +162,7 @@ export class Container<T> {
     cb: SubscribeCallback<P>,
     options?: {
       /**
-       * An `AbortSignal` reference to control the unsubscibe.
+       * An `AbortSignal` reference to control the unsubscribe.
        */
       signal?: AbortSignal;
       /**
@@ -174,7 +199,7 @@ export class Container<T> {
   }
 
   /**
-   * Resets the container to its initial value. This method is asynchronous an
+   * Resets the container to its initial value. This method is asynchronous and
    * returns a promise that resolves when all subscriber callbacks have completed.
    */
   public reset(): Promise<void> {
