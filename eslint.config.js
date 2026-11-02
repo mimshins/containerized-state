@@ -22,7 +22,11 @@ export default defineConfig(
     files: ["*.ts", "*.tsx"],
   },
   {
-    ignores: ["**/dist/"],
+    ignores: [
+      // Compiled against built packages by check:published-types.
+      "scripts/published-types/**",
+      "**/dist/",
+    ],
   },
   {
     languageOptions: {
