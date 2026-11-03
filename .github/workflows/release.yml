@@ -1,0 +1,116 @@
+name: Release
+
+# The flow of https://changesets.dev/guide/automating: each step holds only the
+# permission it needs, and only `publish` can reach npm. runbook/release.md has
+# the human steps, npm's trusted publishers among them.
+#
+#   - `select-mode` reads whether changesets are pending or a version is
+#     unpublished.
+#   - `version` opens the "chore: bump versions" pull request.
+#   - `pack` builds and checks the tarballs, with no write permission.
+#   - `publish` publishes those tarballs with npm trusted publishing. No npm
+#     token is stored anywhere. It runs no build.
+on:
+  push:
+    branches: [main]
+
+# No job gets a token unless it asks for one below.
+permissions: {}
+
+concurrency:
+  group: release-${{ github.ref }}
+
+jobs:
+  select-mode:
+    name: select-mode
+    if: github.repository == 'mimshins/containerized-state'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+      publish-plan-artifact-id:
+        ${{ steps.select-mode.outputs.publish-plan-artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      - id: select-mode
+        uses: changesets/action/select-mode@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+
+  version:
+    name: version
+    needs: select-mode
+    if: needs.select-mode.outputs.mode == 'version'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      # The whole history: changesets finds the commit that added each changeset
+      # for the changelog.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      - uses: changesets/action/version@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          commit-message: "chore: bump versions"
+          pr-title: "chore: bump versions"
+
+  pack:
+    name: pack
+    needs: select-mode
+    if: needs.select-mode.outputs.mode == 'publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      # The whole gate again, on the commit that is about to be published.
+      - run: pnpm run check
+      - id: pack
+        uses: changesets/action/pack@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          publish-plan-artifact-id:
+            ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
+
+  publish:
+    name: publish
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Name this environment in each package's trusted publisher, and give it
+    # required reviewers to approve every release.
+    environment: release
+    permissions:
+      # The tags and the GitHub releases.
+      contents: write
+      # npm trusted publishing and provenance: the job's OIDC token.
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+        with:
+          cache: "false"
+      - uses: changesets/action/publish@ae32849d5ba541f9ae29e40e22a623bc13562f51 # v2.1.2
+        with:
+          pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}

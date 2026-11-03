@@ -16,3 +16,9 @@ Choose the right checklist for the change that you're making:
 - [ ] Related issues linked using `fixes #number`
 - [ ] Tests added
 - [ ] Documentation added
+
+## Every change
+
+- [ ] `pnpm check` passes
+- [ ] A changeset, if a consumer can observe the change
+- [ ] The package README, if behavior changed

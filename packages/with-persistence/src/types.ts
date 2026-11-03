@@ -24,7 +24,7 @@ export type PersistenceConfig = {
   /**
    * Time-to-live in milliseconds.
    */
-  ttl?: number;
+  ttl?: number | undefined;
 };
 
 /**

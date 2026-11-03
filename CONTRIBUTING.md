@@ -73,10 +73,11 @@ git checkout main
 git pull upstream main
 ```
 
-4. Install the dependencies with `pnpm` (`npm` and `yarn` aren't supported):
+4. Install the dependencies with `pnpm` (`npm` and `yarn` aren't supported). The
+   Node and pnpm versions are pinned in `.node-version` and `packageManager`:
 
 ```sh
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 5. Create a new topic branch:
@@ -85,7 +86,8 @@ pnpm install
 git switch -c my-topic-branch
 ```
 
-6. Make changes, commit and push to your fork:
+6. Make changes, run `pnpm check`, add a changeset (`pnpm changeset`) if a
+   consumer can observe the change, then commit and push to your fork:
 
 ```sh
 git push -u origin HEAD
@@ -99,8 +101,27 @@ and either merge it, request changes to it, or close it with an explanation.
 
 ### Coding style
 
-Please follow the coding style of the project. We use `prettier` and `eslint`,
-so if possible, enable linting in your editor to get real-time feedback.
+Formatting and lint are automated: `oxfmt` formats and `oxlint` lints
+(`pnpm format`, `pnpm lint`; `pnpm check` verifies both). The rules are in
+[AGENTS.md](./AGENTS.md#architecture-rules), and
+[ADR-001](./decisions/ADR-001-toolchain.md) records why the toolchain is what it
+is.
+
+### Using the role agents
+
+The agents are defined once in [`.ai/agents/`](./.ai/agents/) and exposed to
+each tool through pointer-only adapters
+([ADR-002](./decisions/ADR-002-agent-workflow.md)):
+
+| Tool           | Where it finds the agents         | How to invoke                                             |
+| -------------- | --------------------------------- | --------------------------------------------------------- |
+| Claude Code    | `.claude/agents` → `.ai/agents`   | Ask for it by name ("use the reviewer agent")             |
+| OpenCode       | `.opencode/agents` → `.ai/agents` | `@reviewer`                                               |
+| Codex / others | none                              | "Act as the reviewer defined in `.ai/agents/reviewer.md`" |
+
+Skills are found through `.claude/skills`, `.opencode/skills`, and
+`.agents/skills`, all pointing to `.ai/skills`. The order of a change is in
+[AGENTS.md](./AGENTS.md#agent-workflow).
 
 ### Git Commit Messages
 

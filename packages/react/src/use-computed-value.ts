@@ -4,6 +4,7 @@ import type {
   EqualityCheckFunction,
 } from "containerized-state";
 import { useMemo } from "react";
+
 import { useSyncExternalStoreWithSelector } from "./use-sync-external-store.ts";
 
 /**

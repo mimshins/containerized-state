@@ -1,5 +1,6 @@
 import type { Container } from "containerized-state";
 import { useMemo } from "react";
+
 import { useSyncExternalStore } from "./use-sync-external-store.ts";
 
 /**

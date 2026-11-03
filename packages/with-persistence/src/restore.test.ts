@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vitest } from "vitest";
+
 import { PersistentContainer } from "./persistent-container.ts";
 
 const memoryStorage = (entries: Record<string, string> = {}): Storage => {
@@ -28,6 +29,15 @@ const open = <T>(initial: T, storage: Storage, ttl?: number) =>
     storage,
     ...(ttl === undefined ? {} : { ttl }),
   });
+
+// Only the clock is faked: stored timestamps and TTLs must not depend on real time.
+beforeEach(() => {
+  vitest.useFakeTimers({ toFake: ["Date"], now: 1_000_000 });
+});
+
+afterEach(() => {
+  vitest.useRealTimers();
+});
 
 describe("restoring a persisted value", () => {
   it("should restore a saved null", async () => {

@@ -27,7 +27,8 @@ export class Container<T> {
   constructor(initializer: Initializer<T>) {
     const initialValue =
       typeof initializer === "function"
-        ? (initializer as CallableFunction<[], T>)()
+        ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a function initializer is called, as documented: `typeof` cannot narrow a generic T.
+          (initializer as CallableFunction<[], T>)()
         : initializer;
 
     this._initialValue = initialValue;
@@ -56,13 +57,11 @@ export class Container<T> {
 
     this._value = newValue;
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this.#notifications.push(() => {
         const entities = [...this._subscribers];
 
-        Promise.all(
-          entities.map(entity => this.#notify(entity, prevValue, newValue)),
-        ).then(() => resolve(), reject);
+        resolve(this.#notifyAll(entities, prevValue, newValue));
       });
 
       this.#runNotifications();
@@ -82,6 +81,20 @@ export class Container<T> {
 
     this.#notifications.length = 0;
     this.#isNotifying = false;
+  }
+
+  /**
+   * Notifies every given subscriber, and settles when they have all finished or
+   * the first one has failed.
+   */
+  async #notifyAll(
+    entities: ContainerEntity<T>[],
+    prevValue: T,
+    newValue: T,
+  ): Promise<void> {
+    await Promise.all(
+      entities.map(entity => this.#notify(entity, prevValue, newValue)),
+    );
   }
 
   /**
@@ -123,18 +136,14 @@ export class Container<T> {
       /**
        * An `AbortSignal` reference to control the unsubscribe.
        */
-      signal?: AbortSignal;
+      signal?: AbortSignal | undefined;
     },
   ): Unsubscribe {
     const { signal } = options ?? {};
 
-    const asyncCb = async (value: T): Promise<void> => {
-      return cb(value);
-    };
-
     const entity: DefaultEntity<T> = {
       type: Entity.DEFAULT,
-      cb: asyncCb,
+      cb,
     };
 
     this._subscribers.add(entity);
@@ -146,7 +155,7 @@ export class Container<T> {
 
     signal?.addEventListener("abort", unsubscribe);
 
-    if (signal?.aborted) unsubscribe();
+    if (signal?.aborted === true) unsubscribe();
 
     return unsubscribe;
   }
@@ -164,23 +173,19 @@ export class Container<T> {
       /**
        * An `AbortSignal` reference to control the unsubscribe.
        */
-      signal?: AbortSignal;
+      signal?: AbortSignal | undefined;
       /**
        * A custom equality function to control emission changes.
        */
-      isEqual?: EqualityCheckFunction<P>;
+      isEqual?: EqualityCheckFunction<P> | undefined;
     },
   ): Unsubscribe {
     const { isEqual, signal } = options ?? {};
 
-    const asyncCb = async (value: P): Promise<void> => {
-      return cb(value);
-    };
-
     const entity: ComputedEntity<T, P> = {
       type: Entity.COMPUTED,
       computeValue,
-      cb: asyncCb,
+      cb,
       isEqual,
     };
 
@@ -193,7 +198,7 @@ export class Container<T> {
 
     signal?.addEventListener("abort", unsubscribe);
 
-    if (signal?.aborted) unsubscribe();
+    if (signal?.aborted === true) unsubscribe();
 
     return unsubscribe;
   }

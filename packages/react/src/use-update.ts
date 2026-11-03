@@ -1,5 +1,6 @@
 import type { Container } from "containerized-state";
 import { type SetStateAction, useCallback } from "react";
+
 import type { CallableFunction } from "./types.ts";
 
 export type Updater<T> = (state: SetStateAction<T>) => void | Promise<void>;
@@ -21,7 +22,8 @@ export const useUpdate = <T>(container: Container<T>): Updater<T> => {
     state => {
       const newStateValue =
         typeof state === "function"
-          ? (state as CallableFunction<[T], T>)(container.getValue())
+          ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- SetStateAction's function form: `typeof` cannot narrow a generic T.
+            (state as CallableFunction<[T], T>)(container.getValue())
           : state;
 
       return container.setValue(newStateValue);

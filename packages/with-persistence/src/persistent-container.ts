@@ -1,4 +1,5 @@
 import { type Initializer, Container } from "containerized-state";
+
 import type {
   PersistenceConfig,
   PersistenceStorage,
@@ -72,7 +73,7 @@ export class PersistentContainer<T> extends Container<T> {
     try {
       const stored = this.#storage.getItem(this.#storageKey);
 
-      if (!stored) return null;
+      if (stored === null) return null;
 
       const data: unknown = JSON.parse(stored);
 

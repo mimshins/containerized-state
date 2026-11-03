@@ -1,4 +1,5 @@
 import type { Container } from "containerized-state";
+
 import { PersistentContainer } from "./persistent-container.ts";
 import type { PersistenceConfig } from "./types.ts";
 

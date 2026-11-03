@@ -1,27 +1,8 @@
-import { coverageConfigDefaults, defineConfig } from "vitest/config";
+import { defineConfig } from "vitest/config";
 
-const config = defineConfig({
-  test: {
-    environment: "node",
-    include: [
-      "src/**/__tests__/**/*.[jt]s?(x)",
-      "src/**/?(*.)+(spec|test).[jt]s?(x)",
-    ],
-    coverage: {
-      enabled: true,
-      provider: "v8",
-      reporter: ["text"],
-      include: ["src/**"],
-      exclude: [
-        ...coverageConfigDefaults.exclude,
-        "src/index.ts",
-        "src/types.ts",
-      ],
-      thresholds: {
-        "100": true,
-      },
-    },
-  },
+import { coreSource, coverage, include } from "../../vitest.base.ts";
+
+export default defineConfig({
+  resolve: { alias: coreSource },
+  test: { environment: "node", include, coverage: coverage() },
 });
-
-export default config;

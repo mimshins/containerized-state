@@ -1,7 +1,16 @@
-import { describe, expect, it, vitest } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vitest } from "vitest";
+
 import { Container } from "./Container.ts";
 
 describe("Container", () => {
+  beforeEach(() => {
+    vitest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vitest.useRealTimers();
+  });
+
   it("should create an instance with initial value", () => {
     const container = new Container(42);
 
@@ -131,7 +140,7 @@ describe("Container", () => {
     const container = Container.create(42);
     let asyncTaskDone = false;
 
-    const subscriberSpy = vitest.fn(async () => {
+    const subscriberSpy = vitest.fn(() => {
       return new Promise<void>(resolve => {
         setTimeout(() => {
           asyncTaskDone = true;
@@ -149,6 +158,8 @@ describe("Container", () => {
     expect(subscriberSpy).toHaveBeenCalledWith(24);
     expect(asyncTaskDone).toBe(false);
 
+    await vitest.advanceTimersByTimeAsync(100);
+
     // Wait for setValue to complete, which in turn waits for all subscribers.
     await setValuePromise;
 
@@ -160,7 +171,7 @@ describe("Container", () => {
     const container = Container.create({ count: 42, name: "test" });
     let asyncTaskDone = false;
 
-    const subscriberSpy = vitest.fn(async () => {
+    const subscriberSpy = vitest.fn(() => {
       return new Promise<void>(resolve => {
         setTimeout(() => {
           asyncTaskDone = true;
@@ -177,6 +188,7 @@ describe("Container", () => {
     expect(subscriberSpy).toHaveBeenCalledWith(44);
     expect(asyncTaskDone).toBe(false);
 
+    await vitest.advanceTimersByTimeAsync(100);
     await setValuePromise;
 
     expect(asyncTaskDone).toBe(true);
@@ -187,7 +199,7 @@ describe("Container", () => {
     let subscriber1Done = false;
     let subscriber2Done = false;
 
-    const spy1 = vitest.fn(async () => {
+    const spy1 = vitest.fn(() => {
       return new Promise<void>(resolve => {
         setTimeout(() => {
           subscriber1Done = true;
@@ -196,12 +208,12 @@ describe("Container", () => {
       });
     });
 
-    const spy2 = vitest.fn(async () => {
+    const spy2 = vitest.fn(() => {
       return new Promise<void>(resolve => {
         setTimeout(() => {
           subscriber2Done = true;
           resolve();
-        }, 50); // This one finishes faster.
+        }, 50);
       });
     });
 
@@ -215,6 +227,12 @@ describe("Container", () => {
     expect(subscriber1Done).toBe(false);
     expect(subscriber2Done).toBe(false);
 
+    // Only the faster one is done: setValue must still be waiting for the other.
+    await vitest.advanceTimersByTimeAsync(50);
+    expect(subscriber1Done).toBe(false);
+    expect(subscriber2Done).toBe(true);
+
+    await vitest.advanceTimersByTimeAsync(100);
     await setValuePromise;
 
     // Both subscribers should be done after setValue completes.
@@ -292,7 +310,8 @@ describe("Container", () => {
     const subscriber = vitest.fn();
 
     container.computedSubscribe(v => v * 2, subscriber, {
-      isEqual: () => true, // Always consider values equal
+      // Always consider values equal
+      isEqual: () => true,
     });
 
     await container.setValue(43);
@@ -304,10 +323,12 @@ describe("Container", () => {
     const subscriber = vitest.fn();
 
     container.computedSubscribe(v => v, subscriber, {
-      isEqual: () => false, // Always consider values different
+      // Always consider values different
+      isEqual: () => false,
     });
 
-    await container.setValue(42); // Same value but isEqual returns false
+    // Same value but isEqual returns false
+    await container.setValue(42);
     expect(subscriber).toHaveBeenCalledWith(42);
   });
 

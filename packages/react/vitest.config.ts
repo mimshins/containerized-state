@@ -1,32 +1,14 @@
 import reactPlugin from "@vitejs/plugin-react";
-import tsconfigPathsPlugin from "vite-tsconfig-paths";
-import { configDefaults, defineConfig } from "vitest/config";
+import { defineConfig } from "vitest/config";
 
-const config = defineConfig({
-  plugins: [tsconfigPathsPlugin(), reactPlugin()],
+import { coreSource, coverage, include } from "../../vitest.base.ts";
+
+export default defineConfig({
+  plugins: [reactPlugin()],
+  resolve: { alias: coreSource },
   test: {
     environment: "jsdom",
-    setupFiles: ["./setup-tests.ts"],
-    include: [
-      "src/**/__tests__/**/*.[jt]s?(x)",
-      "src/**/?(*.)+(spec|test).[jt]s?(x)",
-    ],
-    coverage: {
-      enabled: true,
-      provider: "v8",
-      reporter: ["text"],
-      include: ["src/**"],
-      exclude: [
-        ...(configDefaults.coverage.exclude ?? []),
-        "src/types.ts",
-        "src/index.ts",
-        "src/use-sync-external-store.ts",
-      ],
-      thresholds: {
-        "100": true,
-      },
-    },
+    include,
+    coverage: coverage(["src/use-sync-external-store.ts"]),
   },
 });
-
-export default config;

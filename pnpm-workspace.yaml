@@ -1,2 +1,18 @@
 packages:
-  - "packages/*"
+  - packages/*
+
+# Supply chain (decisions/ADR-001-toolchain.md).
+# A version must have been published for at least 7 days (in minutes).
+minimumReleaseAge: 10080
+minimumReleaseAgeStrict: true
+# Dependency lifecycle scripts are off. A package may run one only if it is
+# listed here with `true`; no entry is `true`, on purpose.
+allowBuilds:
+  # esbuild's install script only checks the prebuilt binary its platform
+  # package delivers. Denied explicitly so `strictDepBuilds` stays on.
+  esbuild: false
+strictDepBuilds: true
+# Refuse a version whose trust evidence is weaker than an earlier one's.
+trustPolicy: no-downgrade
+# Development dependencies are saved at an exact version.
+savePrefix: ""
