@@ -27,7 +27,8 @@ export class Container<T> {
   constructor(initializer: Initializer<T>) {
     const initialValue =
       typeof initializer === "function"
-        ? (initializer as CallableFunction<[], T>)()
+        ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- a function initializer is called, as documented: `typeof` cannot narrow a generic T.
+          (initializer as CallableFunction<[], T>)()
         : initializer;
 
     this._initialValue = initialValue;
@@ -44,25 +45,35 @@ export class Container<T> {
   }
 
   /**
+   * The value to render on the server and while hydrating, which must match on
+   * both sides. It is the current value, unless a subclass holds a value only
+   * the client can know.
+   */
+  public getServerValue(): T {
+    return this._value;
+  }
+
+  /**
    * Updates the value of the state and notifies the subscribers.
    *
    * Each subscriber present when a notification starts gets it, unless it
    * unsubscribes first, and a failing one does not stop the others. An update
    * made during a notification is delivered after it, so every subscriber sees
    * updates in order and the last value it gets is the current one.
+   *
+   * The promise settles once every subscriber has finished. It rejects with the
+   * error of a subscriber that failed, or an `AggregateError` if several did.
    */
   public setValue(newValue: T): Promise<void> {
     const prevValue = this._value;
 
     this._value = newValue;
 
-    return new Promise((resolve, reject) => {
+    return new Promise(resolve => {
       this.#notifications.push(() => {
         const entities = [...this._subscribers];
 
-        Promise.all(
-          entities.map(entity => this.#notify(entity, prevValue, newValue)),
-        ).then(() => resolve(), reject);
+        resolve(this.#notifyAll(entities, prevValue, newValue));
       });
 
       this.#runNotifications();
@@ -85,6 +96,31 @@ export class Container<T> {
   }
 
   /**
+   * Notifies every given subscriber and settles when they have all finished, so
+   * a failure is never reported while another subscriber is still running and
+   * no failure is lost.
+   */
+  async #notifyAll(
+    entities: ContainerEntity<T>[],
+    prevValue: T,
+    newValue: T,
+  ): Promise<void> {
+    const results = await Promise.allSettled(
+      entities.map(entity => this.#notify(entity, prevValue, newValue)),
+    );
+    const failures = results.flatMap(result =>
+      result.status === "rejected" ? [result.reason as unknown] : [],
+    );
+
+    if (failures.length > 1) {
+      throw new AggregateError(failures, "Several subscribers failed.");
+    }
+
+    // What the subscriber threw, unchanged, whatever it is.
+    if (failures.length === 1) throw failures[0];
+  }
+
+  /**
    * Notifies one subscriber of a change. It is asynchronous so that anything
    * thrown here rejects this subscriber's promise and leaves the others alone.
    */
@@ -102,6 +138,11 @@ export class Container<T> {
     }
 
     const { computeValue, cb, isEqual } = entity;
+
+    // An unchanged value cannot change what is computed from it, even when
+    // `computeValue` returns a new object each time. A custom `isEqual` decides
+    // for itself.
+    if (isEqual === undefined && Object.is(prevValue, newValue)) return;
 
     const computedValue = computeValue(newValue) as unknown;
     const prevComputedValue = computeValue(prevValue) as unknown;
@@ -123,18 +164,14 @@ export class Container<T> {
       /**
        * An `AbortSignal` reference to control the unsubscribe.
        */
-      signal?: AbortSignal;
+      signal?: AbortSignal | undefined;
     },
   ): Unsubscribe {
     const { signal } = options ?? {};
 
-    const asyncCb = async (value: T): Promise<void> => {
-      return cb(value);
-    };
-
     const entity: DefaultEntity<T> = {
       type: Entity.DEFAULT,
-      cb: asyncCb,
+      cb,
     };
 
     this._subscribers.add(entity);
@@ -146,7 +183,7 @@ export class Container<T> {
 
     signal?.addEventListener("abort", unsubscribe);
 
-    if (signal?.aborted) unsubscribe();
+    if (signal?.aborted === true) unsubscribe();
 
     return unsubscribe;
   }
@@ -164,23 +201,19 @@ export class Container<T> {
       /**
        * An `AbortSignal` reference to control the unsubscribe.
        */
-      signal?: AbortSignal;
+      signal?: AbortSignal | undefined;
       /**
        * A custom equality function to control emission changes.
        */
-      isEqual?: EqualityCheckFunction<P>;
+      isEqual?: EqualityCheckFunction<P> | undefined;
     },
   ): Unsubscribe {
     const { isEqual, signal } = options ?? {};
 
-    const asyncCb = async (value: P): Promise<void> => {
-      return cb(value);
-    };
-
     const entity: ComputedEntity<T, P> = {
       type: Entity.COMPUTED,
       computeValue,
-      cb: asyncCb,
+      cb,
       isEqual,
     };
 
@@ -193,7 +226,7 @@ export class Container<T> {
 
     signal?.addEventListener("abort", unsubscribe);
 
-    if (signal?.aborted) unsubscribe();
+    if (signal?.aborted === true) unsubscribe();
 
     return unsubscribe;
   }

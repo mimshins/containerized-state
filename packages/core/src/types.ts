@@ -1,9 +1,6 @@
-// eslint-disable-next-line eslint-comments/disable-enable-pair
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 import type { Entity } from "./constants.ts";
 
-export type CallableFunction<TArgs extends any[] = [], TReturn = void> = (
+export type CallableFunction<TArgs extends unknown[] = [], TReturn = void> = (
   ...args: TArgs
 ) => TReturn;
 
@@ -16,7 +13,7 @@ export type ComputedEntity<T, P> = {
   type: (typeof Entity)["COMPUTED"];
   cb: SubscribeCallback<P>;
   computeValue: ComputeValue<T, P>;
-  isEqual?: EqualityCheckFunction<P>;
+  isEqual?: EqualityCheckFunction<P> | undefined;
 };
 
 export type DefaultEntity<T> = {
@@ -24,6 +21,9 @@ export type DefaultEntity<T> = {
   cb: SubscribeCallback<T>;
 };
 
-export type ContainerEntity<T> = DefaultEntity<T> | ComputedEntity<T, any>;
+export type ContainerEntity<T> =
+  | DefaultEntity<T>
+  // oxlint-disable-next-line typescript/no-explicit-any -- each subscriber has its own P, and `unknown` would not accept a ComputedEntity<T, P> (P is contravariant in cb).
+  | ComputedEntity<T, any>;
 
 export type Initializer<T> = T | CallableFunction<[], T>;

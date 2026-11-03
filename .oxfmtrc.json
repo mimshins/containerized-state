@@ -1,0 +1,35 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 80,
+  "insertFinalNewline": true,
+  "proseWrap": "always",
+  "semi": true,
+  "singleQuote": false,
+  "jsxSingleQuote": false,
+  "arrowParens": "avoid",
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "bracketSpacing": true,
+  "bracketSameLine": false,
+  "endOfLine": "lf",
+  "htmlWhitespaceSensitivity": "css",
+  "singleAttributePerLine": true,
+  "sortImports": true,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    "**/node_modules/**",
+    "**/CHANGELOG.md",
+    ".changeset/**/*.md",
+    "pnpm-lock.*",
+    "LICENSE",
+    // Agent and skill files keep single-line frontmatter descriptions, which
+    // some agent tools require; oxfmt would wrap them.
+    ".ai/agents/*.md",
+    ".ai/skills/*/SKILL.md",
+    ".ai/memories/*.md",
+    ".ai/memories/working/*.md",
+    ".ai/templates/*.md"
+  ]
+}

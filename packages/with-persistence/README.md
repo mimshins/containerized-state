@@ -131,7 +131,7 @@ expected.
 Configuration options for persistence functionality.
 
 ```ts
-type PersistenceConfig = {
+type PersistenceConfig<T> = {
   /**
    * Unique key for storing data in the storage.
    */
@@ -148,6 +148,22 @@ type PersistenceConfig = {
    * If specified, stored data will expire after this duration.
    */
   ttl?: number;
+
+  /**
+   * Optional. Turns the value into what JSON can hold.
+   */
+  serialize?: (value: T) => unknown;
+
+  /**
+   * Optional. Turns what was stored back into the value. If it throws, the
+   * stored data is ignored, so it is also the place to validate it.
+   */
+  deserialize?: (stored: unknown) => T;
+
+  /**
+   * Optional. Told about a failure to load, save or clear.
+   */
+  onError?: (error: unknown) => void;
 };
 ```
 
@@ -170,7 +186,48 @@ instance and immediately attempts to load any existing persisted data:
 - **setValue**: Automatically saves the new value to storage before notifying
   subscribers, so a subscriber that fails or is slow cannot stop the save
 - **reset**: Clears the persisted data from storage and resets the container to
-  its initial value
+  its initial value. A value a subscriber sets in response stays saved
+
+### Values JSON cannot hold
+
+The value is stored as JSON, so a `Date` comes back as a string, and a `bigint`
+cannot be saved at all. Without `serialize` and `deserialize`, what is stored is
+also trusted to be a `T`, even if an older version of your app wrote it. Use
+them to convert a value, and to validate what comes back:
+
+```ts
+const lastSeen = new PersistentContainer(new Date(0), {
+  key: "last-seen",
+  storage: localStorage,
+  serialize: date => date.toISOString(),
+  deserialize: stored => {
+    if (typeof stored !== "string") throw new Error("Not a date");
+
+    return new Date(stored);
+  },
+});
+```
+
+### Server rendering
+
+`getServerValue()` returns the initial value, because the server cannot know
+what the client's storage holds. With `react-containerized-state`, the server
+and the first client render use it, and the persisted value appears right after
+hydrating. A value set with `setValue` on the server is therefore not rendered;
+pass it as the initial value instead.
+
+`localStorage` does not exist on the server, so naming it at module scope throws
+there. Pass a storage that does nothing on the server:
+
+```ts
+const noStorage = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
+};
+
+const storage = typeof window === "undefined" ? noStorage : localStorage;
+```
 
 ### Error Handling
 
@@ -181,6 +238,9 @@ The plugin handles storage errors gracefully:
 - **Save errors**: If saving fails (quota exceeded, storage unavailable), the
   container update still succeeds
 - **TTL expiration**: Expired data is automatically removed from storage
+
+Load, save and clear failures are silent unless you pass `onError`, which also
+reports a value that cannot be saved. An error `onError` throws is ignored.
 
 ## Examples
 

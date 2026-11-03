@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { Container } from "containerized-state";
 import { describe, expect, it } from "vitest";
+
 import { useUpdate } from "./use-update.ts";
 
 describe("useUpdate", () => {
@@ -9,7 +10,8 @@ describe("useUpdate", () => {
     const { result, rerender } = renderHook(() => useUpdate(container));
     const updater1 = result.current;
 
-    rerender(); // Re-render the hook without changing its props
+    // Re-render the hook without changing its props
+    rerender();
     const updater2 = result.current;
 
     expect(updater1).toBe(updater2);

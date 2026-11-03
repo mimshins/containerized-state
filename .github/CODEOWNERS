@@ -1,0 +1,21 @@
+# Paths that can reach the supply chain or a credential are listed explicitly,
+# even though the owner is the same as the default, so that none of them is left
+# to the default silently. The last matching pattern wins.
+
+*                         @mimshins
+
+/.github/                 @mimshins
+/.ai/                     @mimshins
+/.claude/                 @mimshins
+/.opencode/               @mimshins
+/.agents/                 @mimshins
+/AGENTS.md                @mimshins
+/CLAUDE.md                @mimshins
+/package.json             @mimshins
+/pnpm-lock.yaml           @mimshins
+/pnpm-workspace.yaml      @mimshins
+/.node-version            @mimshins
+/tools/                   @mimshins
+/decisions/               @mimshins
+/runbook/                 @mimshins
+/SECURITY.md              @mimshins

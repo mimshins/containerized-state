@@ -1,0 +1,28 @@
+name: Set up the toolchain
+description: >-
+  Install the pinned pnpm and Node and install the dependencies from the
+  lockfile with lifecycle scripts off. Run actions/checkout first.
+inputs:
+  cache:
+    description: >-
+      "true" (the default) turns on the pnpm store cache. The release jobs pass
+      "false": a release job restores nothing from a cache.
+    required: false
+    default: "true"
+runs:
+  using: composite
+  steps:
+    # The version comes from the "packageManager" field of package.json.
+    - name: Install pnpm
+      uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+    - name: Install Node
+      uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      with:
+        node-version-file: .node-version
+        cache: ${{ inputs.cache == 'true' && 'pnpm' || '' }}
+        package-manager-cache: false
+    # --ignore-scripts: no lifecycle script runs, a workspace project's own
+    # included. Nothing in CI needs one.
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile --ignore-scripts

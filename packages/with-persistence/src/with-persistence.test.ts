@@ -1,5 +1,6 @@
 import { Container } from "containerized-state";
 import { afterEach, beforeEach, describe, expect, it, vitest } from "vitest";
+
 import { PersistentContainer } from "./persistent-container.ts";
 import type { StoredData } from "./types.ts";
 import { withPersistence } from "./with-persistence.ts";
@@ -34,6 +35,15 @@ class MockStorage implements Storage {
     this.#store[key] = value;
   }
 }
+
+// Only the clock is faked: stored timestamps and TTLs must not depend on real time.
+beforeEach(() => {
+  vitest.useFakeTimers({ toFake: ["Date"], now: 1_000_000 });
+});
+
+afterEach(() => {
+  vitest.useRealTimers();
+});
 
 describe("withPersistence", () => {
   let mockStorage: MockStorage;
@@ -71,7 +81,7 @@ describe("withPersistence", () => {
 
     expect(stored).toBeTruthy();
 
-    const parsed = JSON.parse(stored!) as StoredData<number>;
+    const parsed = JSON.parse(stored ?? "") as StoredData<number>;
 
     expect(parsed.value).toBe(42);
     expect(parsed.timestamp).toBeTypeOf("number");
@@ -156,21 +166,43 @@ describe("withPersistence", () => {
 
   it("should handle storage errors gracefully when saving", async () => {
     const faultyStorage = {
-      ...mockStorage,
       setItem: vitest.fn(() => {
         throw new Error("Storage full");
       }),
       getItem: vitest.fn(() => null),
+      removeItem: vitest.fn(),
     };
 
     const persistentContainer = withPersistence(Container.create(0), {
       key: "counter",
-      storage: faultyStorage as unknown as Storage,
+      storage: faultyStorage,
     });
 
     // Should not throw
     await expect(persistentContainer.setValue(42)).resolves.toBeUndefined();
     expect(persistentContainer.getValue()).toBe(42);
+  });
+
+  it("should keep a value that is a function, not call it", () => {
+    const value = (): number => 1;
+    const persistentContainer = withPersistence(
+      Container.create(() => value),
+      { key: "function", storage: mockStorage },
+    );
+
+    expect(persistentContainer.getValue()).toBe(value);
+  });
+
+  it("should not save the initial value on reset", async () => {
+    const setItem = vitest.spyOn(mockStorage, "setItem");
+    const persistentContainer = withPersistence(Container.create(0), {
+      key: "counter",
+      storage: mockStorage,
+    });
+
+    await persistentContainer.reset();
+
+    expect(setItem).not.toHaveBeenCalled();
   });
 
   it("should clear persisted data on reset", async () => {
@@ -203,7 +235,7 @@ describe("withPersistence", () => {
     await persistentContainer.setValue(newValue);
 
     const stored = mockStorage.getItem("object");
-    const parsed = JSON.parse(stored!) as StoredData<{
+    const parsed = JSON.parse(stored ?? "") as StoredData<{
       count: number;
       name: string;
     }>;
@@ -220,7 +252,7 @@ describe("withPersistence", () => {
     await persistentContainer.setValue([4, 5, 6]);
 
     const stored = mockStorage.getItem("array");
-    const parsed = JSON.parse(stored!) as StoredData<number[]>;
+    const parsed = JSON.parse(stored ?? "") as StoredData<number[]>;
 
     expect(parsed.value).toEqual([4, 5, 6]);
   });
@@ -238,7 +270,7 @@ describe("withPersistence", () => {
     await persistentContainer.setValue(null);
 
     const stored = mockStorage.getItem("nullable");
-    const parsed = JSON.parse(stored!) as StoredData<string | null>;
+    const parsed = JSON.parse(stored ?? "") as StoredData<string | null>;
 
     expect(parsed.value).toBeNull();
   });
@@ -383,6 +415,21 @@ describe("withPersistence", () => {
 
       expect(container.getValue()).toBe(0);
       expect(mockStorage.getItem("misbehaving")).toBeNull();
+    });
+
+    it("should keep a value a subscriber sets in response to a reset", async () => {
+      const container = open();
+
+      await container.setValue(1);
+
+      container.subscribe(value => {
+        if (value === 0) void container.setValue(2);
+      });
+
+      await container.reset();
+
+      expect(container.getValue()).toBe(2);
+      expect(saved(mockStorage, "misbehaving")).toBe(2);
     });
 
     it("should keep a value set while a reset is notifying", async () => {

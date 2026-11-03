@@ -3,7 +3,13 @@ import type {
   Container,
   EqualityCheckFunction,
 } from "containerized-state";
-import type { JSX, ReactNode } from "react";
+import {
+  createElement,
+  Fragment,
+  type ReactElement,
+  type ReactNode,
+} from "react";
+
 import { useComputedValue } from "./use-computed-value.ts";
 
 export type SubscribeProps<T, P> = {
@@ -18,12 +24,12 @@ export type SubscribeProps<T, P> = {
   /**
    * A function that computes a derived value from the container's state.
    */
-  compute?: ComputeValue<T, P>;
+  compute?: ComputeValue<T, P> | undefined;
   /**
    * An optional function to compare previous and next computed values to
    * prevent unnecessary re-renders.
    */
-  isEqual?: EqualityCheckFunction<P>;
+  isEqual?: EqualityCheckFunction<P> | undefined;
 };
 
 /**
@@ -51,9 +57,10 @@ export type SubscribeProps<T, P> = {
  */
 export const Subscribe = <T, P = T>(
   props: SubscribeProps<T, P>,
-): JSX.Element => {
+): ReactElement => {
   const {
     children: render,
+    // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- with no `compute`, P defaults to T, and the types cannot express that link.
     compute = (value: T) => value as unknown as P,
     container,
     isEqual,
@@ -64,5 +71,7 @@ export const Subscribe = <T, P = T>(
   // Call the render prop function with the computed value to get the children to render.
   const children = render(computed);
 
-  return <>{children}</>;
+  // Not JSX: the automatic runtime it compiles to needs `react/jsx-runtime`, which
+  // the versions at the start of the peer range do not have.
+  return createElement(Fragment, null, children);
 };

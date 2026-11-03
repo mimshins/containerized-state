@@ -7,9 +7,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
-    "./dist",
-    "README.md",
-    "LICENSE"
+    "dist"
   ],
   "exports": {
     ".": {
@@ -30,7 +28,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mimshins/containerized-state.git"
+    "url": "git+https://github.com/mimshins/containerized-state.git",
+    "directory": "packages/core"
   },
   "bugs": {
     "url": "https://github.com/mimshins/containerized-state/issues"
@@ -41,11 +40,9 @@
   },
   "license": "MIT",
   "scripts": {
-    "clear": "shx rm -rf dist",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "prebuild": "pnpm run clear",
     "build": "tsdown",
-    "release": "pnpm publish . --tag latest --access public --no-git-checks"
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest"
   }
 }

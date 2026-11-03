@@ -1,6 +1,7 @@
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { Container } from "containerized-state";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { Subscribe } from "./Subscribe.tsx";
 
 describe("Subscribe", () => {
@@ -14,11 +15,11 @@ describe("Subscribe", () => {
 
   beforeEach(() => {
     // Re-initialize the container before each test to ensure a clean state
-    userContainer = new Container({
+    userContainer = new Container<User>({
       age: 30,
       name: "Alice",
       status: "active",
-    } satisfies User as User);
+    });
 
     cleanup();
   });
@@ -33,7 +34,7 @@ describe("Subscribe", () => {
       </Subscribe>,
     );
 
-    expect(screen.getByTestId("name")).toHaveTextContent(
+    expect(screen.getByTestId("name").textContent).toContain(
       userContainer.getValue().name,
     );
   });
@@ -50,7 +51,9 @@ describe("Subscribe", () => {
     );
 
     // Initial render should show the full User object stringified via the render function
-    expect(screen.getByTestId("user")).toHaveTextContent("Alice, 30, active");
+    expect(screen.getByTestId("user").textContent).toContain(
+      "Alice, 30, active",
+    );
 
     await act(async () => {
       await userContainer.setValue({
@@ -61,7 +64,9 @@ describe("Subscribe", () => {
     });
 
     // Expect the updated container state to flow through unchanged (identity compute)
-    expect(screen.getByTestId("user")).toHaveTextContent("Bob, 40, inactive");
+    expect(screen.getByTestId("user").textContent).toContain(
+      "Bob, 40, inactive",
+    );
   });
 
   it("should re-render when the container's state changes and the computed value changes", async () => {
@@ -74,7 +79,7 @@ describe("Subscribe", () => {
       </Subscribe>,
     );
 
-    expect(screen.getByTestId("age")).toHaveTextContent(
+    expect(screen.getByTestId("age").textContent).toContain(
       `Age: ${userContainer.getValue().age}`,
     );
 
@@ -87,7 +92,7 @@ describe("Subscribe", () => {
       });
     });
 
-    expect(screen.getByTestId("age")).toHaveTextContent(`Age: ${31}`);
+    expect(screen.getByTestId("age").textContent).toContain("Age: 31");
 
     await act(async () => {
       // Test with a different value
@@ -98,7 +103,7 @@ describe("Subscribe", () => {
       });
     });
 
-    expect(screen.getByTestId("age")).toHaveTextContent(`Age: ${40}`);
+    expect(screen.getByTestId("age").textContent).toContain("Age: 40");
   });
 
   it("should not re-render when the computed value does not change, even if the container state does", async () => {
@@ -116,7 +121,7 @@ describe("Subscribe", () => {
     // Initial render check
     expect(renderSpy).toHaveBeenCalledTimes(1);
 
-    expect(screen.getByTestId("name")).toHaveTextContent(
+    expect(screen.getByTestId("name").textContent).toContain(
       userContainer.getValue().name,
     );
 
@@ -166,7 +171,7 @@ describe("Subscribe", () => {
     // Initial render
     expect(renderSpy).toHaveBeenCalledTimes(1);
 
-    expect(screen.getByTestId("test")).toHaveTextContent(
+    expect(screen.getByTestId("test").textContent).toContain(
       "Name: Alice, Age: 30",
     );
 
@@ -192,7 +197,9 @@ describe("Subscribe", () => {
       });
     });
 
-    expect(screen.getByTestId("test")).toHaveTextContent("Name: Bob, Age: 35");
+    expect(screen.getByTestId("test").textContent).toContain(
+      "Name: Bob, Age: 35",
+    );
     // The render spy should have been called one more time.
     expect(renderSpy).toHaveBeenCalledTimes(2);
   });
@@ -212,7 +219,7 @@ describe("Subscribe", () => {
     );
 
     // Initial render check
-    expect(screen.getByTestId("age-sentence")).toHaveTextContent(
+    expect(screen.getByTestId("age-sentence").textContent).toContain(
       "The user is 30 years old.",
     );
 
@@ -226,7 +233,7 @@ describe("Subscribe", () => {
     });
 
     // Expect the component to re-render with the new sentence
-    expect(screen.getByTestId("age-sentence")).toHaveTextContent(
+    expect(screen.getByTestId("age-sentence").textContent).toContain(
       "The user is 45 years old.",
     );
   });
