@@ -19,7 +19,10 @@ lands:
 1. On npmjs.com, for each of `containerized-state`, `react-containerized-state`,
    and `containerized-state-plugin-persistence`, add a trusted publisher:
    repository `mimshins/containerized-state`, workflow `release.yml`,
-   environment `release`.
+   environment `release`. Under **Allowed actions**, turn on direct publishing
+   with `npm publish`: a publisher created after Sep 3, 2026 allows only
+   `npm stage publish` by default, and `publish` publishes directly. npm does
+   not check these values when you save them.
 2. In the repository settings, Actions > General: allow GitHub Actions to create
    and approve pull requests.
 3. Optional: give the `release` environment required reviewers, to approve every
@@ -42,6 +45,13 @@ merge with an admin bypass if the status does not attach.
 A failed `publish` job leaves the version unpublished: fix the cause and re-run
 the failed jobs. Any later push to `main` also selects `publish` mode again
 while a version is unpublished.
+
+Two errors point at a package's trusted publisher on npmjs.com:
+
+- `403 OIDC permission denied for this action`: direct publishing is not turned
+  on under **Allowed actions**.
+- `404 Not found`: the publisher is missing, or a value does not match exactly.
+  All of them are case-sensitive.
 
 ## Check the first release
 
