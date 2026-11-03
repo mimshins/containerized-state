@@ -44,7 +44,7 @@
     "react": ">=16.8"
   },
   "dependencies": {
-    "containerized-state": "workspace:*",
+    "containerized-state": "workspace:^",
     "use-sync-external-store": "^1.6.0"
   },
   "devDependencies": {

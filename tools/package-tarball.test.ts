@@ -13,6 +13,7 @@ const GOOD: Unpacked = {
   ],
   manifest: { exports: { ".": { default: "./dist/index.js" } } },
   declarations: "export declare const a: number;",
+  code: "export const a = 1;",
   declaresContainer: false,
 };
 
@@ -51,6 +52,11 @@ describe("the tarball check", () => {
       "a copied Container",
       { declarations: "declare class Container<T> {}" },
       "copies",
+    ],
+    [
+      "the JSX runtime",
+      { code: 'import{jsx as a}from"react/jsx-runtime";' },
+      "jsx-runtime",
     ],
     ["a lost Container", { declaresContainer: true }, "does not declare"],
   ])("refuses %s", (_name, change, message) => {

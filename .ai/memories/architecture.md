@@ -16,5 +16,11 @@ subscriber runs in its own async `#notify`, so one that throws cannot stop anoth
 declarations of it are different types. So no package may bundle core's types
 (`deps.neverBundle` in `tsdown.base.ts`; checked in `tools/package-tarball.ts`).
 
-**`PersistentContainer`** overrides `setValue` and `reset`. Note that core's `reset`
-calls `this.setValue`, so the override runs during a reset too.
+**`PersistentContainer`** overrides `setValue` and `reset`. Its `reset` calls
+`super.setValue` directly: core's `reset` calls `this.setValue`, which would save
+the initial value. It clears storage before notifying, so a value a subscriber sets
+in response stays saved.
+
+**Server rendering.** The hooks' server snapshot is `getServerValue()`, not
+`getValue()`. `PersistentContainer` returns its initial value there, so hydration
+matches the server's HTML.

@@ -32,7 +32,8 @@ import type { PersistenceConfig } from "./types.ts";
  */
 export const withPersistence = <T>(
   container: Container<T>,
-  config: PersistenceConfig,
+  config: PersistenceConfig<T>,
 ): PersistentContainer<T> => {
-  return new PersistentContainer<T>(container.getValue(), config);
+  // Through an initializer, or a value that is a function would be called.
+  return new PersistentContainer<T>(() => container.getValue(), config);
 };

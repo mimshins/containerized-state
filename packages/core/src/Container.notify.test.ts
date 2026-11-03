@@ -130,4 +130,75 @@ describe("Container notifications", () => {
 
     expect(seen).toHaveBeenLastCalledWith(2);
   });
+
+  it("should settle only after every subscriber has finished, even if one fails", async () => {
+    const container = Container.create(0);
+    let finishSlow = (): void => {};
+    let settled = false;
+
+    container.subscribe(() => {
+      throw new Error("failed");
+    });
+    container.subscribe(
+      () =>
+        new Promise<void>(resolve => {
+          finishSlow = resolve;
+        }),
+    );
+
+    const update = container.setValue(1).catch((error: unknown) => {
+      settled = true;
+
+      return error;
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    finishSlow();
+
+    expect(await update).toEqual(new Error("failed"));
+  });
+
+  it("should report every failure when several subscribers fail", async () => {
+    const container = Container.create(0);
+    const first = new Error("first");
+    const second = new Error("second");
+
+    container.subscribe(() => {
+      throw first;
+    });
+    container.subscribe(() => {
+      throw second;
+    });
+
+    const error: unknown = await container
+      .setValue(1)
+      .catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(AggregateError);
+    expect((error as AggregateError).errors).toEqual([first, second]);
+  });
+
+  it("should not notify a computed subscriber of an unchanged value", async () => {
+    const value = { count: 1 };
+    const container = Container.create(value);
+    const subscriber = vitest.fn();
+
+    container.computedSubscribe(({ count }) => ({ count }), subscriber);
+
+    await container.setValue(value);
+
+    expect(subscriber).not.toHaveBeenCalled();
+  });
+
+  it("should give the current value as the server value", async () => {
+    const container = Container.create(0);
+
+    await container.setValue(1);
+
+    expect(container.getServerValue()).toBe(1);
+  });
 });

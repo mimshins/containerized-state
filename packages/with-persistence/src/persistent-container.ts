@@ -10,7 +10,7 @@ import type {
  * Whether a parsed value has the shape this package stores. Its `value` may be
  * missing, since JSON drops `undefined`.
  */
-const isStoredData = <T>(data: unknown): data is StoredData<T> =>
+const isStoredData = (data: unknown): data is StoredData<unknown> =>
   typeof data === "object" &&
   data !== null &&
   "timestamp" in data &&
@@ -28,13 +28,24 @@ export class PersistentContainer<T> extends Container<T> {
   readonly #storageKey: string;
   readonly #storage: PersistenceStorage;
   readonly #ttl: number | undefined;
+  readonly #serialize: (value: T) => unknown;
+  readonly #deserialize: (stored: unknown) => T;
+  readonly #onError: ((error: unknown) => void) | undefined;
 
-  constructor(initializer: Initializer<T>, config: PersistenceConfig) {
+  constructor(initializer: Initializer<T>, config: PersistenceConfig<T>) {
     super(initializer);
 
     this.#storageKey = config.key;
     this.#storage = config.storage;
     this.#ttl = config.ttl;
+    this.#serialize = value =>
+      config.serialize === undefined ? value : config.serialize(value);
+    this.#deserialize = stored =>
+      config.deserialize === undefined
+        ? // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- with no `deserialize`, the documented default is to trust what this package stored.
+          (stored as T)
+        : config.deserialize(stored);
+    this.#onError = config.onError;
 
     // Initialize container with persisted value if available
     const persisted = this.#loadPersistedData();
@@ -42,6 +53,15 @@ export class PersistentContainer<T> extends Container<T> {
     if (persisted !== null) {
       this._value = persisted.value;
     }
+  }
+
+  /**
+   * The initial value: the server cannot know what the client's storage holds,
+   * so the first client render must not use it either. React moves to the
+   * persisted value right after hydrating.
+   */
+  public override getServerValue(): T {
+    return this._initialValue;
   }
 
   /**
@@ -55,14 +75,13 @@ export class PersistentContainer<T> extends Container<T> {
   }
 
   /**
-   * Resets the container to its initial value, notifies subscribers,
-   * and clears persisted data from storage.
+   * Clears persisted data from storage, then resets the container to its initial
+   * value and notifies subscribers. It clears first so that a value a subscriber
+   * sets in response is the one that stays saved.
    */
   public override async reset(): Promise<void> {
-    const notified = super.reset();
-
     this.#clearValue();
-    await notified;
+    await super.setValue(this._initialValue);
   }
 
   /**
@@ -77,7 +96,9 @@ export class PersistentContainer<T> extends Container<T> {
 
       const data: unknown = JSON.parse(stored);
 
-      if (!isStoredData<T>(data)) return null;
+      if (!isStoredData(data)) {
+        throw new TypeError(`Unexpected data in "${this.#storageKey}".`);
+      }
 
       // Check if data has expired
       if (this.#ttl !== undefined && Date.now() - data.timestamp > this.#ttl) {
@@ -86,9 +107,11 @@ export class PersistentContainer<T> extends Container<T> {
         return null;
       }
 
-      return data;
-    } catch {
+      return { ...data, value: this.#deserialize(data.value) };
+    } catch (error) {
       // Return null if parsing fails or storage is unavailable
+      this.#report(error);
+
       return null;
     }
   }
@@ -99,8 +122,8 @@ export class PersistentContainer<T> extends Container<T> {
   #clearValue(): void {
     try {
       this.#storage.removeItem(this.#storageKey);
-    } catch {
-      // Silently fail if storage is unavailable
+    } catch (error) {
+      this.#report(error);
     }
   }
 
@@ -109,14 +132,33 @@ export class PersistentContainer<T> extends Container<T> {
    */
   #saveValue(value: T): void {
     try {
-      const data: StoredData<T> = {
-        value,
+      const serialized = this.#serialize(value);
+
+      // JSON would drop these, and the record would restore as `undefined`.
+      if (typeof serialized === "function" || typeof serialized === "symbol") {
+        throw new TypeError(`Cannot save a ${typeof serialized} as JSON.`);
+      }
+
+      const data: StoredData<unknown> = {
+        value: serialized,
         timestamp: Date.now(),
       };
 
       this.#storage.setItem(this.#storageKey, JSON.stringify(data));
+    } catch (error) {
+      this.#report(error);
+    }
+  }
+
+  /**
+   * Tells `onError` of a failure. Persistence failing must not stop the
+   * container, so neither may the callback that reports it.
+   */
+  #report(error: unknown): void {
+    try {
+      this.#onError?.(error);
     } catch {
-      // Silently fail if storage is unavailable
+      // Nothing is left to report it to.
     }
   }
 }

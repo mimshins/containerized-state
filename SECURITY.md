@@ -6,4 +6,6 @@ legitimate reports and do our best to quickly fix the problem.
 
 ## How to let us know?
 
-- [Open up an issue](<https://github.com/mimshins/containerized-state/issues/new?assignees=mimshins&labels=security,"priority:high"&projects=&template=bug_report.md&title=fix(security):>)
+- [Report it privately](https://github.com/mimshins/containerized-state/security/advisories/new)
+  through GitHub. Please do not open a public issue: it would disclose the
+  vulnerability before there is a fix.

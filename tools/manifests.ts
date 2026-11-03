@@ -82,8 +82,8 @@ export const findPackageProblems = (
 
   for (const [name, version] of Object.entries(dependencies)) {
     if (workspaceNames.has(name)) {
-      if (!version.startsWith("workspace:")) {
-        problems.push(`${label}: ${name} must use the workspace protocol`);
+      if (version !== "workspace:^") {
+        problems.push(`${label}: ${name} must be workspace:^`);
       }
     } else if (!ALLOWED_RUNTIME.has(name)) {
       problems.push(`${label}: runtime dependency ${name} needs an ADR`);

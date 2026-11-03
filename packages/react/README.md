@@ -193,6 +193,20 @@ const UserGreeting = () => (
 );
 ```
 
+## Server rendering
+
+The hooks render `container.getServerValue()` on the server and while hydrating,
+which by default is the container's current value. Both sides must then hold the
+same value, or React reports a hydration mismatch. A container that holds a
+value only the client knows, like a `PersistentContainer`, returns its initial
+value instead.
+
+## Errors
+
+The function `useUpdate` returns gives back the promise of `container.setValue`.
+Await it or catch it if a subscriber can fail, or the failure becomes an
+unhandled rejection.
+
 ## Contributing
 
 Read the

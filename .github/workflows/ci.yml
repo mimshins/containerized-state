@@ -97,12 +97,14 @@ jobs:
       - run: pnpm run check:packages
 
   # A pull request that changes a package needs a changeset. The bump pull
-  # request itself has none to add.
+  # request has none to add, and a Dependabot one cannot write one.
   changeset:
     name: changeset
-    if:
-      github.event_name == 'pull_request' && github.head_ref !=
-      'changeset-release/main'
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login != 'dependabot[bot]' &&
+      !(github.head_ref == 'changeset-release/main' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:

@@ -82,6 +82,7 @@ try {
         readFileSync(join(unpacked, "package.json"), "utf8"),
       ) as Manifest,
       declarations: readFileSync(join(unpacked, "dist/index.d.ts"), "utf8"),
+      code: readFileSync(join(unpacked, "dist/index.js"), "utf8"),
       declaresContainer: directory === "core",
     });
 

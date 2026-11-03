@@ -45,12 +45,24 @@ export class Container<T> {
   }
 
   /**
+   * The value to render on the server and while hydrating, which must match on
+   * both sides. It is the current value, unless a subclass holds a value only
+   * the client can know.
+   */
+  public getServerValue(): T {
+    return this._value;
+  }
+
+  /**
    * Updates the value of the state and notifies the subscribers.
    *
    * Each subscriber present when a notification starts gets it, unless it
    * unsubscribes first, and a failing one does not stop the others. An update
    * made during a notification is delivered after it, so every subscriber sees
    * updates in order and the last value it gets is the current one.
+   *
+   * The promise settles once every subscriber has finished. It rejects with the
+   * error of a subscriber that failed, or an `AggregateError` if several did.
    */
   public setValue(newValue: T): Promise<void> {
     const prevValue = this._value;
@@ -84,17 +96,28 @@ export class Container<T> {
   }
 
   /**
-   * Notifies every given subscriber, and settles when they have all finished or
-   * the first one has failed.
+   * Notifies every given subscriber and settles when they have all finished, so
+   * a failure is never reported while another subscriber is still running and
+   * no failure is lost.
    */
   async #notifyAll(
     entities: ContainerEntity<T>[],
     prevValue: T,
     newValue: T,
   ): Promise<void> {
-    await Promise.all(
+    const results = await Promise.allSettled(
       entities.map(entity => this.#notify(entity, prevValue, newValue)),
     );
+    const failures = results.flatMap(result =>
+      result.status === "rejected" ? [result.reason as unknown] : [],
+    );
+
+    if (failures.length > 1) {
+      throw new AggregateError(failures, "Several subscribers failed.");
+    }
+
+    // What the subscriber threw, unchanged, whatever it is.
+    if (failures.length === 1) throw failures[0];
   }
 
   /**
@@ -115,6 +138,11 @@ export class Container<T> {
     }
 
     const { computeValue, cb, isEqual } = entity;
+
+    // An unchanged value cannot change what is computed from it, even when
+    // `computeValue` returns a new object each time. A custom `isEqual` decides
+    // for itself.
+    if (isEqual === undefined && Object.is(prevValue, newValue)) return;
 
     const computedValue = computeValue(newValue) as unknown;
     const prevComputedValue = computeValue(prevValue) as unknown;

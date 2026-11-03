@@ -5,6 +5,7 @@ import type {
 } from "containerized-state";
 import { useMemo } from "react";
 
+import { getServerValue } from "./server-value.ts";
 import { useSyncExternalStoreWithSelector } from "./use-sync-external-store.ts";
 
 /**
@@ -29,7 +30,7 @@ export const useComputedValue = <T, P>(
     () => ({
       subscribe: container.subscribe.bind(container),
       getSnapshot: container.getValue.bind(container),
-      getServerSnapshot: container.getValue.bind(container),
+      getServerSnapshot: () => getServerValue(container),
     }),
     [container],
   );

@@ -75,20 +75,29 @@ console.log(container.getValue()); // "Hello"
 ### `container.setValue(newValue)`
 
 Updates the value of the container's state and notifies all subscribers. This
-method is asynchronous and returns a promise that resolves when all subscriber
+method is asynchronous and returns a promise that settles when all subscriber
 callbacks have completed.
+
+If a subscriber fails, the others still run, and the promise rejects once they
+have all finished: with that subscriber's error, or with an `AggregateError` if
+several failed. The value stays updated either way. Await the promise or catch
+it, or a failing subscriber becomes an unhandled rejection.
 
 ```ts
 const container = Container.create(0);
 
-const subscriber = vitest.fn();
-container.subscribe(subscriber);
+container.subscribe(value => console.log("Value changed to:", value));
 
-await container.setValue(10);
+await container.setValue(10); // Logs: "Value changed to: 10"
 // All subscribers have been notified
 console.log(container.getValue()); // 10
-expect(subscriber).toHaveBeenCalledWith(10);
 ```
+
+### `container.getServerValue()`
+
+Returns the value to render on the server and while hydrating. It is the current
+value; a subclass that holds a value only the client can know overrides it, so
+that both sides render the same thing.
 
 ### `container.reset()`
 
@@ -133,7 +142,8 @@ subscriber is only notified if the computed value changes.
   value.
 - `cb`: The callback function that receives the new computed value.
 - `options.isEqual`: An optional custom equality function to control when the
-  subscriber is notified. By default, `Object.is` is used.
+  subscriber is notified, which runs even when the state did not change. By
+  default, `Object.is` is used, and an unchanged state never notifies.
 - `options.signal`: An optional `AbortSignal` to automatically unsubscribe.
 
 ## Contributing

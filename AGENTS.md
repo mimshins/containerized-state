@@ -74,6 +74,11 @@ Enforced by `.oxlintrc.json` (proven by `tools/lint-rules.test.ts`) and
 - A package that takes a sibling as a peer also takes it as a `workspace:`
   development dependency, so its tests run against the workspace and not a
   published copy.
+- A sibling a package depends on is `workspace:^`, never an exact version:
+  `Container` is nominal to TypeScript, so a pinned copy would be a different
+  type from the one the consumer installed.
+- The react package's peer range starts before `react/jsx-runtime` existed, so
+  its source uses `createElement`, not JSX (`tools/package-tarball.ts`).
 - Tests import core's source through `vitest.base.ts`, never a built copy.
 - Strict TypeScript. No `any`, and no `@ts-ignore`; `@ts-expect-error` and lint
   disables name the rule and give the reason on the same line.

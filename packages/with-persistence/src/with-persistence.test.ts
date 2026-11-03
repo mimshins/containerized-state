@@ -183,6 +183,28 @@ describe("withPersistence", () => {
     expect(persistentContainer.getValue()).toBe(42);
   });
 
+  it("should keep a value that is a function, not call it", () => {
+    const value = (): number => 1;
+    const persistentContainer = withPersistence(
+      Container.create(() => value),
+      { key: "function", storage: mockStorage },
+    );
+
+    expect(persistentContainer.getValue()).toBe(value);
+  });
+
+  it("should not save the initial value on reset", async () => {
+    const setItem = vitest.spyOn(mockStorage, "setItem");
+    const persistentContainer = withPersistence(Container.create(0), {
+      key: "counter",
+      storage: mockStorage,
+    });
+
+    await persistentContainer.reset();
+
+    expect(setItem).not.toHaveBeenCalled();
+  });
+
   it("should clear persisted data on reset", async () => {
     const persistentContainer = withPersistence(Container.create(10), {
       key: "counter",
@@ -393,6 +415,21 @@ describe("withPersistence", () => {
 
       expect(container.getValue()).toBe(0);
       expect(mockStorage.getItem("misbehaving")).toBeNull();
+    });
+
+    it("should keep a value a subscriber sets in response to a reset", async () => {
+      const container = open();
+
+      await container.setValue(1);
+
+      container.subscribe(value => {
+        if (value === 0) void container.setValue(2);
+      });
+
+      await container.reset();
+
+      expect(container.getValue()).toBe(2);
+      expect(saved(mockStorage, "misbehaving")).toBe(2);
     });
 
     it("should keep a value set while a reset is notifying", async () => {

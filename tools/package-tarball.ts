@@ -27,12 +27,13 @@ export type Unpacked = {
   readonly files: readonly string[];
   readonly manifest: Manifest;
   readonly declarations: string;
+  readonly code: string;
   readonly declaresContainer: boolean;
 };
 
 /** Every problem of one unpacked package. */
 export const findTarballProblems = (unpacked: Unpacked): string[] => {
-  const { files, manifest, declarations, declaresContainer } = unpacked;
+  const { files, manifest, declarations, code, declaresContainer } = unpacked;
   const problems: string[] = [];
   const present = new Set(files);
 
@@ -67,6 +68,11 @@ export const findTarballProblems = (unpacked: Unpacked): string[] => {
 
   if (declarations.includes("sourceMappingURL")) {
     problems.push("points its declarations at a map it does not ship");
+  }
+
+  // React's peer range starts before this entry existed.
+  if (code.includes("react/jsx-runtime")) {
+    problems.push("imports react/jsx-runtime, outside its peer range");
   }
 
   // A copied declaration is a second, incompatible type: Container has

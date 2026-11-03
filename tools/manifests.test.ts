@@ -43,6 +43,11 @@ describe("the manifest rules", () => {
       "workspace",
     ],
     [
+      "a sibling that would publish as an exact version",
+      { dependencies: { "containerized-state": "workspace:*" } },
+      "workspace:^",
+    ],
+    [
       "a sibling peer with no workspace link",
       { peerDependencies: { "containerized-state": "^3" } },
       "peer",

@@ -3,7 +3,12 @@ import type {
   Container,
   EqualityCheckFunction,
 } from "containerized-state";
-import type { JSX, ReactNode } from "react";
+import {
+  createElement,
+  Fragment,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 
 import { useComputedValue } from "./use-computed-value.ts";
 
@@ -52,7 +57,7 @@ export type SubscribeProps<T, P> = {
  */
 export const Subscribe = <T, P = T>(
   props: SubscribeProps<T, P>,
-): JSX.Element => {
+): ReactElement => {
   const {
     children: render,
     // oxlint-disable-next-line typescript/no-unsafe-type-assertion -- with no `compute`, P defaults to T, and the types cannot express that link.
@@ -66,5 +71,7 @@ export const Subscribe = <T, P = T>(
   // Call the render prop function with the computed value to get the children to render.
   const children = render(computed);
 
-  return <>{children}</>;
+  // Not JSX: the automatic runtime it compiles to needs `react/jsx-runtime`, which
+  // the versions at the start of the peer range do not have.
+  return createElement(Fragment, null, children);
 };
